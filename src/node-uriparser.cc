@@ -54,7 +54,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::Local<v8::Object> emptyObject = v8::Object::New();
 
     int i, position, tmpPosition;
-    int hostLastPosition;
+    int hostLastPosition = 0;
 
     if (uri.scheme.first) {
         data->Set(v8::String::New("protocol"), v8::String::New(uri.scheme.first, strlen(uri.scheme.first) - strlen(uri.scheme.afterLast)), attrib);
@@ -77,8 +77,11 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.hostText.first) {
-        hostLastPosition = strlen(uri.hostText.afterLast);
-        data->Set(v8::String::New("hostname"), v8::String::New(uri.hostText.first, strlen(uri.hostText.first) - hostLastPosition), attrib);
+        int tmpLength = strlen(uri.hostText.first);
+        char *tmp = strchr(uri.hostText.first, '/');
+        hostLastPosition = tmpLength - ((tmp - uri.hostText.first) + 1);
+
+        data->Set(v8::String::New("hostname"), v8::String::New(uri.hostText.first, tmpLength - strlen(uri.hostText.afterLast)), attrib);
     } else {
         data->Set(v8::String::New("hostname"), emptyString, attrib);
     }
