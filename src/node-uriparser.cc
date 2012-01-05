@@ -99,7 +99,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
     if (uri.query.first) {
         char *query = (char*) uri.query.first;
-        query[strlen(uri.query.first) - strlen(uri.query.afterLast)] = NULL;
+        query[strlen(uri.query.first) - strlen(uri.query.afterLast)] = '\0';
         const char *amp = "&", *sum = "=";
         char *queryParamPtr, *queryParam = strtok_r(query, amp, &queryParamPtr), *queryParamKey, *queryParamValue;
 
@@ -137,7 +137,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         tmpPosition = strlen(pathHead.text.afterLast);
 
-        path[position - tmpPosition] = NULL;
+        path[position - tmpPosition] = '\0';
 
         if (uri.absolutePath || uri.hostText.first) {
             path--;
