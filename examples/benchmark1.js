@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-var uriparser = require('../build/default/uriparser'), url = "http://10.177.51.76/", matches;
+var uriparser = require('../build/default/uriparser'), url = "http://10.177.51.76", matches;
 
 for (var i = 0; i < 2000000; i++) {
     matches = uriparser.parse(url);

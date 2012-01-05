@@ -91,7 +91,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     if (uri.portText.first) {
         data->Set(v8::String::New("port"), v8::String::New(uri.portText.first, strlen(uri.portText.first) - strlen(uri.portText.afterLast)), attrib);
     } else {
-        data->Set(v8::String::New("port"), emptyString, attrib);
+        data->Set(v8::String::New("port"), v8::Integer::New(80), attrib);
     }
 
     if (uri.query.first) {
@@ -112,7 +112,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         data->Set(v8::String::New("query"), queryData, attrib);
     } else {
-        data->Set(v8::String::New("query"), emptyString, attrib);
+        data->Set(v8::String::New("query"), emptyObject, attrib);
     }
 
     if (uri.fragment.first) {
@@ -121,9 +121,9 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         data->Set(v8::String::New("fragment"), emptyString, attrib);
     }
 
-    UriPathSegmentA pathHead = *uri.pathHead;
+    if (uri.pathHead && uri.pathHead->text.first && hostLastPosition > 1) {
+        UriPathSegmentA pathHead = *uri.pathHead;
 
-    if (pathHead.text.first && hostLastPosition > 1) {
         char *path = (char*) pathHead.text.first;
 
         position = strlen(pathHead.text.first);
@@ -142,7 +142,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         data->Set(v8::String::New("pathname"), v8::String::New(path), attrib);
     } else {
-        data->Set(v8::String::New("pathname"), emptyString, attrib);
+        data->Set(v8::String::New("pathname"), v8::String::New("/"), attrib);
     }
 
 /*    UriPathSegmentA pathHead = *uri.pathHead;
