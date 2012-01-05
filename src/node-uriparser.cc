@@ -65,7 +65,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     if (uri.userInfo.first) {
         char *auth = (char*) uri.userInfo.first;
         const char *delim = ":";
-        auth[strlen(uri.userInfo.first) - strlen(uri.userInfo.afterLast)] = NULL;
+        auth[strlen(uri.userInfo.first) - strlen(uri.userInfo.afterLast)] = '\0';
 
         v8::Local<v8::Object> authData = v8::Object::New();
         authData->Set(v8::String::New("user"), v8::String::New(strtok(auth, delim))), attrib;
@@ -78,7 +78,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
     if (uri.hostText.first) {
         int tmpLength = strlen(uri.hostText.first);
-        char *tmp = strchr(uri.hostText.first, '/');
+        const char *tmp = strchr(uri.hostText.first, '/');
         hostLastPosition = tmpLength - ((tmp - uri.hostText.first) + 1);
 
         data->Set(v8::String::New("hostname"), v8::String::New(uri.hostText.first, tmpLength - strlen(uri.hostText.afterLast)), attrib);
