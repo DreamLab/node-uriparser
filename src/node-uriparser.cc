@@ -54,10 +54,11 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::Local<v8::Object> emptyObject = v8::Object::New();
 
     int i, position, tmpPosition;
-    int hostLastPosition = 0;
+    int hostSlashPosition = 0;
 
     if (uri.scheme.first) {
-        data->Set(v8::String::New("protocol"), v8::String::New(uri.scheme.first, strlen(uri.scheme.first) - strlen(uri.scheme.afterLast)), attrib);
+        // +1 here because we need : after protocol
+        data->Set(v8::String::New("protocol"), v8::String::New(uri.scheme.first, strlen(uri.scheme.first) - strlen(uri.scheme.afterLast) + 1), attrib);
     } else {
         data->Set(v8::String::New("protocol"), emptyString, attrib);
     }
@@ -77,9 +78,10 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.hostText.first) {
+        //we need to find out is there anything after first / after host (or host:port)
         int tmpLength = strlen(uri.hostText.first);
         const char *tmp = strchr(uri.hostText.first, '/');
-        hostLastPosition = tmpLength - ((tmp - uri.hostText.first) + 1);
+        hostSlashPosition = tmpLength - ((tmp - uri.hostText.first) + 1);
 
         data->Set(v8::String::New("hostname"), v8::String::New(uri.hostText.first, tmpLength - strlen(uri.hostText.afterLast)), attrib);
     } else {
@@ -124,7 +126,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         data->Set(v8::String::New("fragment"), emptyString, attrib);
     }
 
-    if (uri.pathHead && uri.pathHead->text.first && hostLastPosition > 1) {
+    if (uri.pathHead && uri.pathHead->text.first && hostSlashPosition > 1) {
         UriPathSegmentA pathHead = *uri.pathHead;
 
         char *path = (char*) pathHead.text.first;

@@ -20,7 +20,9 @@
  * THE SOFTWARE.
  */
 
-var uriparser = require('../build/default/uriparser');
+var uriparser = require("../build/default/uriparser");
 
-console.log("http://kubek:qwe123@test.pl:8080/sssss/index.html?qwe=1111&qqq=123#czesc");
-console.log(uriparser.parse("http://kubek:qwe123@test.pl:8080/sssss/index.html?qwe=1111&qqq=123#czesc"));
+var url = "http://kubek:qwe123@test.pl:8080/sssss/index.html?qwe=1111&qqq=123#czesc";
+
+console.log(url);
+console.log(uriparser.parse(url));

@@ -5,7 +5,7 @@
     "keywords": ["uriparser", "uri", "parser", "url"],
     "author": "Jakub Lekstan <kuebzky@gmail.com>",
     "dependencies": {},
-    "main": "bin/uriparser.node",
+    "main": "../build/default/uriparser"
     "repository": {
         "type": "git",
         "url": "https://github.com/kuebk/node-uriparser.git"

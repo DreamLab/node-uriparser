@@ -23,7 +23,3 @@ def build(bld):
 	obj.libpath = [bld.bdir + "/uriparser/lib"]
 	obj.cxxflags = ["-g"]
 	obj.cflags = ["-g"]
-
-def shutdown():
-	if os.path.exists("build/default/uriparser.node"):
-		os.system("cp build/default/uriparser.node ./bin")
