@@ -5,13 +5,13 @@
     "keywords": ["uriparser", "uri", "parser", "url"],
     "author": "Jakub Lekstan <kuebzky@gmail.com>",
     "dependencies": {},
-    "main": "../build/default/uriparser"
+    "main": "../build/default/uriparser",
     "repository": {
         "type": "git",
         "url": "https://github.com/kuebk/node-uriparser.git"
     },
     "scripts": {
-        "build": "node-waf configure build"
+        "preinstall": "git submodule update --init --recursive; node-waf clean || true; node-waf configure build"
     },
     "engines": {
         "node": ">= 0.4.0" 

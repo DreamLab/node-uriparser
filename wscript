@@ -13,7 +13,7 @@ def configure(conf):
 
 def build(bld):
 
-	bld.exec_command("mkdir -p uriparser; cd ../deps/uriparser && ./configure --with-pic --disable-test --disable-doc --disable-shared --prefix=%s && make clean install" % (bld.bdir + "/uriparser"))
+	bld.exec_command("mkdir -p uriparser; cd ../deps/uriparser && ./autogen.sh && ./configure --with-pic --disable-test --disable-doc --disable-shared --prefix=%s && make clean install" % (bld.bdir + "/uriparser"))
 
 	obj = bld.new_task_gen("cxx", "shlib", "node_addon")
 	obj.target = "uriparser"
