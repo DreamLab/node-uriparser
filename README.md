@@ -9,7 +9,4 @@ Wrapper for Uriparser (http://uriparser.sourceforge.net/), is 3 times fater that
 See ````examples/test.js````
 
 ##Benchmarks:
-Just run:
-    ````time node examples/benchmark1.js````
-    ````time node examples/benchmark2.js````
-And compare the results :)
+Just run ````time node examples/benchmark1.js```` and ````time node examples/benchmark2.js```` to see the difference :)
