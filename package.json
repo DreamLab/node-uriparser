@@ -11,7 +11,7 @@
         "url": "https://github.com/kuebk/node-uriparser.git"
     },
     "scripts": {
-        "preinstall": "git submodule update --init --recursive; node-waf clean || true; node-waf configure build"
+        "preinstall": "node-waf clean || true; node-waf configure build"
     },
     "engines": {
         "node": ">= 0.4.0" 
