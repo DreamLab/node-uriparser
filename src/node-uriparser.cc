@@ -54,7 +54,6 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::Local<v8::Object> emptyObject = v8::Object::New();
 
     int i, position, tmpPosition;
-    int hostSlashPosition = 0;
 
     if (uri.scheme.first) {
         // +1 here because we need : after protocol
@@ -80,8 +79,6 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     if (uri.hostText.first) {
         //we need to find out is there anything after first / after host (or host:port)
         int tmpLength = strlen(uri.hostText.first);
-        const char *tmp = strchr(uri.hostText.first, '/');
-        hostSlashPosition = tmpLength - ((tmp - uri.hostText.first) + 1);
 
         data->Set(v8::String::New("hostname"), v8::String::New(uri.hostText.first, tmpLength - strlen(uri.hostText.afterLast)), attrib);
     } else {
@@ -96,7 +93,11 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     if (uri.portText.first) {
         data->Set(v8::String::New("port"), v8::String::New(uri.portText.first, strlen(uri.portText.first) - strlen(uri.portText.afterLast)), attrib);
     } else {
-        data->Set(v8::String::New("port"), v8::Integer::New(80), attrib);
+        if (uri.hostText.first) {
+            data->Set(v8::String::New("port"), v8::Integer::New(80), attrib);
+        } else {
+            data->Set(v8::String::New("port"), emptyString, attrib);
+        }
     }
 
     if (uri.query.first) {
@@ -112,7 +113,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
             queryParamValue = strtok(NULL, sum);
             queryParam = strtok_r(NULL, amp, &queryParamPtr);
 
-            queryData->Set(v8::String::New(queryParamKey), v8::String::New(queryParamValue), attrib);
+            queryData->Set(v8::String::New(queryParamKey), queryParamValue ? v8::String::New(queryParamValue) : emptyString, attrib);
         }
 
         data->Set(v8::String::New("query"), queryData, attrib);
@@ -126,7 +127,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         data->Set(v8::String::New("fragment"), emptyString, attrib);
     }
 
-    if (uri.pathHead && uri.pathHead->text.first && hostSlashPosition > 1) {
+    if (uri.pathHead && uri.pathHead->text.first) {
         UriPathSegmentA pathHead = *uri.pathHead;
 
         char *path = (char*) pathHead.text.first;
@@ -139,9 +140,13 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         tmpPosition = strlen(pathHead.text.afterLast);
 
-        path[position - tmpPosition] = '\0';
+        if ( (position - tmpPosition) > 0) {
+            path[position - tmpPosition] = '\0';
+        } else {
+            path = (char *) "/";
+        }
 
-        if (uri.absolutePath || uri.hostText.first) {
+        if ((uri.absolutePath || uri.hostText.first) && strlen(path) > 1) {
             path--;
         }
 
