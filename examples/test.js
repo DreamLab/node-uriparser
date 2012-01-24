@@ -22,33 +22,37 @@
 
 var uriparser = require("../build/default/uriparser");
 var assert = require('assert');
+var undef;
 
 var url = "http://eloszka.pl";
 url = uriparser.parse(url);
+console.log(url);
 assert.equal(url.protocol, "http:");
-assert.deepEqual(url.auth, {});
-assert.equal(url.hostname, "eloszka.pl");
-assert.equal(url.port, "80");
-assert.deepEqual(url.query, {});
-assert.equal(url.fragment, "");
-assert.equal(url.pathname, "/");
+assert.equal(url.auth, undef);
+assert.equal(url.host, "eloszka.pl");
+assert.equal(url.port, undef);
+assert.equal(url.query, undef);
+assert.equal(url.fragment, undef);
+assert.equal(url.path, "/");
 
 var url = "http://eloszka.pl/";
 url = uriparser.parse(url);
+console.log(url);
 assert.equal(url.protocol, "http:");
-assert.deepEqual(url.auth, {});
-assert.equal(url.hostname, "eloszka.pl");
-assert.equal(url.port, "80");
-assert.deepEqual(url.query, {});
-assert.equal(url.fragment, "");
-assert.equal(url.pathname, "/");
+assert.equal(url.auth, undef);
+assert.equal(url.host, "eloszka.pl");
+assert.equal(url.port, undef);
+assert.equal(url.query, undef);
+assert.equal(url.fragment, undef);
+assert.equal(url.path, "/");
 
 var url = "/1.txt?test1=okok";
 url = uriparser.parse(url);
-assert.equal(url.protocol, "");
-assert.deepEqual(url.auth, {});
-assert.equal(url.hostname, "");
-assert.equal(url.port, "");
+console.log(url);
+assert.equal(url.protocol, undef);
+assert.equal(url.auth, undef);
+assert.equal(url.host, undef);
+assert.equal(url.port, undef);
 assert.deepEqual(url.query, {test1: "okok"});
-assert.equal(url.fragment, "");
-assert.equal(url.pathname, "/1.txt");
+assert.equal(url.fragment, undef);
+assert.equal(url.path, "/1.txt");
