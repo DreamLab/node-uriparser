@@ -21,8 +21,34 @@
  */
 
 var uriparser = require("../build/default/uriparser");
+var assert = require('assert');
 
-var url = "http://kubek:qwe123@test.pl:8080/sssss/index.html?qwe=1111&qqq=123#czesc";
+var url = "http://eloszka.pl";
+url = uriparser.parse(url);
+assert.equal(url.protocol, "http:");
+assert.deepEqual(url.auth, {});
+assert.equal(url.hostname, "eloszka.pl");
+assert.equal(url.port, "80");
+assert.deepEqual(url.query, {});
+assert.equal(url.fragment, "");
+assert.equal(url.pathname, "/");
 
-console.log(url);
-console.log(uriparser.parse(url));
+var url = "http://eloszka.pl/";
+url = uriparser.parse(url);
+assert.equal(url.protocol, "http:");
+assert.deepEqual(url.auth, {});
+assert.equal(url.hostname, "eloszka.pl");
+assert.equal(url.port, "80");
+assert.deepEqual(url.query, {});
+assert.equal(url.fragment, "");
+assert.equal(url.pathname, "/");
+
+var url = "/1.txt?test1=okok";
+url = uriparser.parse(url);
+assert.equal(url.protocol, "");
+assert.deepEqual(url.auth, {});
+assert.equal(url.hostname, "");
+assert.equal(url.port, "");
+assert.deepEqual(url.query, {test1: "okok"});
+assert.equal(url.fragment, "");
+assert.equal(url.pathname, "/1.txt");
