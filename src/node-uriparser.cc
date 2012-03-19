@@ -74,8 +74,6 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
     v8::Local<v8::Object> data = v8::Object::New();
 
-    int i, position, tmpPosition;
-
     if (uri.scheme.first && opts & kProtocol) {
         // +1 here because we need : after protocol
         data->Set(protocol_symbol, v8::String::New(uri.scheme.first, strlen(uri.scheme.first) - strlen(uri.scheme.afterLast) + 1), attrib);
@@ -120,6 +118,9 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         }
 
         data->Set(query_symbol, queryData, attrib);
+        //parsing the path will be easier
+        query--;
+        query[0] = '\0';
     }
 
     if (uri.fragment.first && opts & kFragment) {
@@ -131,17 +132,14 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         char *path = (char*) pathHead.text.first;
 
-        position = strlen(pathHead.text.first);
+        int position = strlen(pathHead.text.first);
         while (pathHead.next) {
-            i++;
             pathHead = *pathHead.next;
         }
 
-        tmpPosition = strlen(pathHead.text.afterLast);
+        int tmpPosition = strlen(pathHead.text.afterLast);
 
-        if ( (position - tmpPosition) > 0) {
-            path[position - tmpPosition] = '\0';
-        } else {
+        if ( (position - tmpPosition) == 0) {
             path = (char *) "/";
         }
 
