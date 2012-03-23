@@ -8,7 +8,7 @@
     "main": "./lib/bindings.js",
     "repository": {
         "type": "git",
-        "url": "https://github.com/kuebk/node-uriparser.git"
+        "url": "https://github.com/DreamLab/uriparser.git"
     },
     "scripts": {
         "preinstall": "node-waf clean || true; node-waf configure build"
