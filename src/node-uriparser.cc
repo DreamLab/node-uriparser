@@ -144,9 +144,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         }
 
         if ((uri.absolutePath || uri.hostText.first) && strlen(path) >= 1) {
-            char *isNull = path;
-
-            if(*(--isNull)) {
+            if(*(path - 1)) {
                 path--;
             }
         }
