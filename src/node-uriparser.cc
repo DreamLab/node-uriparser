@@ -80,7 +80,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.userInfo.first && opts & kAuth) {
-        char *auth = (char*) uri.userInfo.first;
+        char *auth = (char *) uri.userInfo.first;
         const char *delim = ":";
         auth[strlen(uri.userInfo.first) - strlen(uri.userInfo.afterLast)] = '\0';
 
@@ -102,7 +102,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.query.first && opts & kQuery) {
-        char *query = (char*) uri.query.first;
+        char *query = (char *) uri.query.first;
         query[strlen(uri.query.first) - strlen(uri.query.afterLast)] = '\0';
         const char *amp = "&", *sum = "=";
         char *queryParamPtr, *queryParam = strtok_r(query, amp, &queryParamPtr), *queryParamKey, *queryParamValue;
@@ -130,7 +130,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     if (uri.pathHead && uri.pathHead->text.first && opts & kPath) {
         UriPathSegmentA pathHead = *uri.pathHead;
 
-        char *path = (char*) pathHead.text.first;
+        char *path = (char *) pathHead.text.first;
 
         int position = strlen(pathHead.text.first);
         while (pathHead.next) {
@@ -139,12 +139,16 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         int tmpPosition = strlen(pathHead.text.afterLast);
 
-        if ( (position - tmpPosition) == 0) {
+        if ((position - tmpPosition) == 0) {
             path = (char *) "/";
         }
 
-        if ((uri.absolutePath || uri.hostText.first) && strlen(path) > 1) {
-            path--;
+        if ((uri.absolutePath || uri.hostText.first) && strlen(path) >= 1) {
+            char *isNull = path;
+
+            if(*(--isNull)) {
+                path--;
+            }
         }
 
         data->Set(path_symbol, v8::String::New(path), attrib);
