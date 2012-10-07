@@ -114,10 +114,12 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         while (queryParam) {
             queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
-            queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
-            queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
 
-            queryData->Set(v8::String::New(queryParamKey), v8::String::New(queryParamValue ? queryParamValue : ""), attrib);
+            if (queryParamKey) {
+                queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
+                queryData->Set(v8::String::New(queryParamKey), v8::String::New(queryParamValue ? queryParamValue : ""), attrib);
+            }
+            queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
         }
 
         data->Set(query_symbol, queryData, attrib);
