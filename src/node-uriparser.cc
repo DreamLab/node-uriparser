@@ -81,15 +81,20 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
     if (uri.userInfo.first && opts & kAuth) {
         char *auth = (char *) uri.userInfo.first;
-        char *authPtr;
+        char *authPtr, *authUser, *authPassword;
         const char *delim = ":";
         auth[strlen(uri.userInfo.first) - strlen(uri.userInfo.afterLast)] = '\0';
 
-        v8::Local<v8::Object> authData = v8::Object::New();
-        authData->Set(v8::String::New("user"), v8::String::New(strtok_r(auth, delim, &authPtr))), attrib;
-        authData->Set(v8::String::New("password"), v8::String::New(strtok_r(NULL, delim, &authPtr)), attrib);
+        authUser = strtok_r(auth, delim, &authPtr);
+        authPassword = strtok_r(NULL, delim, &authPtr);
 
-        data->Set(auth_symbol, authData, attrib);
+        if (authUser != NULL && authPassword != NULL) {
+            v8::Local<v8::Object> authData = v8::Object::New();
+            authData->Set(v8::String::New("user"), v8::String::New(authUser)), attrib;
+            authData->Set(v8::String::New("password"), v8::String::New(authPassword), attrib);
+
+            data->Set(auth_symbol, authData, attrib);
+        }
     }
 
     if (uri.hostText.first && opts & kHost) {
@@ -106,6 +111,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         char *query = (char *) uri.query.first;
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
+        bool empty = true;
              
         query[strlen(uri.query.first) - strlen(uri.query.afterLast)] = '\0';
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
@@ -113,16 +119,19 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         v8::Local<v8::Object> queryData = v8::Object::New();
 
         while (queryParam) {
-            queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
-
-            if (queryParamKey) {
+            if (*queryParam != *sum) {
+                empty = false;
+                queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
                 queryData->Set(v8::String::New(queryParamKey), v8::String::New(queryParamValue ? queryParamValue : ""), attrib);
             }
             queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
         }
 
-        data->Set(query_symbol, queryData, attrib);
+        //no need for empty object if the query string is going to be wrong
+        if (!empty) {
+            data->Set(query_symbol, queryData, attrib);
+        }
         //parsing the path will be easier
         query--;
         *query = '\0';
