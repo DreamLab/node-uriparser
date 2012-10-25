@@ -22,7 +22,7 @@
 var uriparser = require("../lib/bindings.js");
 
 
-describe("uriparser", function () {
+describe("uriparser - parse", function () {
     it("http://dreamlab.pl", function () {
         var url = uriparser.parse("http://dreamlab.pl");
 

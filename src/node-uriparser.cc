@@ -68,7 +68,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     state.uri = &uri;
 
     if (uriParseUriA(&state, *url) != URI_SUCCESS) {
-        return scope.Close(v8::Boolean::New(false));
+        v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
     }
 
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
