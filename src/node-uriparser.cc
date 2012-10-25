@@ -56,7 +56,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         opts = static_cast<parseOptions>(args[1]->Int32Value());
     }
 
-    v8::String::Utf8Value url (args[0]->ToString());
+    v8::String::AsciiValue url (args[0]->ToString());
 
     if (url.length() == 0) {
         v8::ThrowException(v8::Exception::TypeError(v8::String::New("String mustn't be empty")));
