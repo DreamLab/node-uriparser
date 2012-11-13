@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-var urlParser = require('url'), url = 'http://10.177.51.76', matches;
+var urlParser = require('url'), url = 'http://10.177.51.76:1337//example/dir/hi', matches;
 
 for(var i=0;i<2000000;i++){
     matches = urlParser.parse(url, true, false);
