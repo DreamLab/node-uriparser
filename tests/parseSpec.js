@@ -49,6 +49,14 @@ describe("uriparser - parse", function () {
         expect(url.query).toEqual({"test1": "okok"});
     });
 
+    it("1.txt?test1=okok", function () {
+        var url = uriparser.parse("1.txt?test1=okok");
+
+        expect(Object.keys(url).length).toEqual(2);
+        expect(url.path).toEqual("1.txt");
+        expect(url.query).toEqual({"test1": "okok"});
+    });
+
     it("http://dreamlab.pl/X?X", function () {
         var url = uriparser.parse("http://dreamlab.pl/X?X");
 

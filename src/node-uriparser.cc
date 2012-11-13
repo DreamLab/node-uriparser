@@ -42,6 +42,8 @@ static v8::Persistent<v8::String> port_symbol = NODE_PSYMBOL("port");
 static v8::Persistent<v8::String> query_symbol = NODE_PSYMBOL("query");
 static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
 static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
+static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
+static v8::Persistent<v8::String> password_symbol = NODE_PSYMBOL("password");
 
 static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::HandleScope scope;
@@ -76,35 +78,33 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
     if (uri.scheme.first && opts & kProtocol) {
         // +1 here because we need : after protocol
-        data->Set(protocol_symbol, v8::String::New(uri.scheme.first, strlen(uri.scheme.first) - strlen(uri.scheme.afterLast) + 1), attrib);
+        data->Set(protocol_symbol, v8::String::New(uri.scheme.first, (uri.scheme.afterLast - uri.scheme.first) + 1), attrib);
     }
 
     if (uri.userInfo.first && opts & kAuth) {
         char *auth = (char *) uri.userInfo.first;
         char *authPtr, *authUser, *authPassword;
         const char *delim = ":";
-        auth[strlen(uri.userInfo.first) - strlen(uri.userInfo.afterLast)] = '\0';
+        auth[uri.userInfo.afterLast - uri.userInfo.first] = '\0';
 
         authUser = strtok_r(auth, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
 
         if (authUser != NULL && authPassword != NULL) {
             v8::Local<v8::Object> authData = v8::Object::New();
-            authData->Set(v8::String::New("user"), v8::String::New(authUser)), attrib;
-            authData->Set(v8::String::New("password"), v8::String::New(authPassword), attrib);
+            authData->Set(user_symbol, v8::String::New(authUser)), attrib;
+            authData->Set(password_symbol, v8::String::New(authPassword), attrib);
 
             data->Set(auth_symbol, authData, attrib);
         }
     }
 
     if (uri.hostText.first && opts & kHost) {
-        int tmpLength = strlen(uri.hostText.first);
-
-        data->Set(host_symbol, v8::String::New(uri.hostText.first, tmpLength - strlen(uri.hostText.afterLast)), attrib);
+        data->Set(host_symbol, v8::String::New(uri.hostText.first, uri.hostText.afterLast - uri.hostText.first), attrib);
     }
 
     if (uri.portText.first && opts & kPort) {
-        data->Set(port_symbol, v8::String::New(uri.portText.first, strlen(uri.portText.first) - strlen(uri.portText.afterLast)), attrib);
+        data->Set(port_symbol, v8::String::New(uri.portText.first, uri.portText.afterLast - uri.portText.first), attrib);
     }
 
     if (uri.query.first && opts & kQuery) {
@@ -113,7 +113,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
              
-        query[strlen(uri.query.first) - strlen(uri.query.afterLast)] = '\0';
+        query[uri.query.afterLast - uri.query.first] = '\0';
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = v8::Object::New();
@@ -138,32 +138,49 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.fragment.first && opts & kFragment) {
-        data->Set(fragment_symbol, v8::String::New(uri.fragment.first, strlen(uri.fragment.first) - strlen(uri.fragment.afterLast)), attrib);
+        data->Set(fragment_symbol, v8::String::New(uri.fragment.first, uri.fragment.afterLast - uri.fragment.first), attrib);
     }
 
     if (uri.pathHead && uri.pathHead->text.first && opts & kPath) {
-        UriPathSegmentA pathHead = *uri.pathHead;
-        char *path = (char *)pathHead.text.first;
-        int position = strlen(pathHead.text.first);
-        int tmpPosition;
+        int len = 0;
 
-        while (pathHead.next) {
-            pathHead = *pathHead.next;
-        }
 
-        tmpPosition = strlen(pathHead.text.afterLast);
-
-        if ((position - tmpPosition) == 0) {
-            path = (char *)"/";
-        }
-
-        if ((uri.absolutePath || uri.hostText.first) && strlen(path) >= 1) {
-            if(*(path - 1)) {
-                path--;
+        UriPathSegmentA *pathHead = uri.pathHead;
+        do {
+            if (pathHead->text.first == pathHead->text.afterLast) {
+                len++;
+            } else {
+                //len +1 because we need to add slash
+                len += pathHead->text.afterLast - pathHead->text.first + 1;
             }
+            pathHead = pathHead->next;
+        } while (pathHead);
+
+        char *path, *p, *tmp;
+        path = p = tmp = (char *) malloc(len + 1);
+        path[len] = '\0';
+
+        pathHead = uri.pathHead;
+        do {
+            //adding slash no matter what
+            *path = '/';
+            path++;
+            //copying text only in case when path segment is not empty
+            if (pathHead->text.first != pathHead->text.afterLast) {
+                int len = pathHead->text.afterLast - pathHead->text.first;
+                memcpy(path, pathHead->text.first, len);
+                path += len;
+            }
+            pathHead = pathHead->next;
+        } while (pathHead);
+
+        //path is always prefixed with / in case of relative url we move pointer further
+        if (!uri.absolutePath && !uri.hostText.first) {
+            p++;
         }
 
-        data->Set(path_symbol, v8::String::New(path), attrib);
+        data->Set(path_symbol, v8::String::New(p), attrib);
+        free(tmp);
     } else if (opts & kPath) {
         data->Set(path_symbol, v8::String::New("/"), attrib);
     }
