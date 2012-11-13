@@ -139,4 +139,22 @@ describe("uriparser - parse", function () {
         expect(url.host).toEqual("www.dreamlab.pl");
         expect(url.path).toEqual("/");
     });
+
+    it("http://www.dreamlab.pl//test/123", function () {
+        var url = uriparser.parse("http://www.dreamlab.pl//test/123");
+
+        expect(Object.keys(url).length).toEqual(3);
+        expect(url.protocol).toEqual("http:");
+        expect(url.host).toEqual("www.dreamlab.pl");
+        expect(url.path).toEqual("//test/123");
+    });
+
+    it("http://www.dreamlab.pl/test//123", function () {
+        var url = uriparser.parse("http://www.dreamlab.pl/test//123");
+
+        expect(Object.keys(url).length).toEqual(3);
+        expect(url.protocol).toEqual("http:");
+        expect(url.host).toEqual("www.dreamlab.pl");
+        expect(url.path).toEqual("/test//123");
+    });
 });
