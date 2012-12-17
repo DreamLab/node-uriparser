@@ -24,6 +24,10 @@
 #include <node.h>
 #include <Uri.h>
 
+#define THROW_IF_NULL(var) if (var.afterLast == NULL) { \
+        return v8::ThrowException(v8::Exception::SyntaxError(v8::String::New("Bad string given"))); \
+    }
+
 enum parseOptions {
     kProtocol = 1,
     kAuth = 1 << 1,
@@ -51,7 +55,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     parseOptions opts = kAll;
 
     if (args.Length() == 0 || !args[0]->IsString()) {
-        v8::ThrowException(v8::Exception::TypeError(v8::String::New("First argument has to be string")));
+        return v8::ThrowException(v8::Exception::TypeError(v8::String::New("First argument has to be string")));
     }
 
     if (args[1]->IsNumber()) {
@@ -61,7 +65,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::String::AsciiValue url (args[0]->ToString());
 
     if (url.length() == 0) {
-        v8::ThrowException(v8::Exception::TypeError(v8::String::New("String mustn't be empty")));
+        return v8::ThrowException(v8::Exception::TypeError(v8::String::New("String mustn't be empty")));
     }
 
     UriParserStateA state;
@@ -70,18 +74,20 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     state.uri = &uri;
 
     if (uriParseUriA(&state, *url) != URI_SUCCESS) {
-        v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
+        return v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
     }
 
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
     v8::Local<v8::Object> data = v8::Object::New();
 
     if (uri.scheme.first && opts & kProtocol) {
+        THROW_IF_NULL(uri.scheme)
         // +1 here because we need : after protocol
         data->Set(protocol_symbol, v8::String::New(uri.scheme.first, (uri.scheme.afterLast - uri.scheme.first) + 1), attrib);
     }
 
     if (uri.userInfo.first && opts & kAuth) {
+        THROW_IF_NULL(uri.userInfo)
         char *auth = (char *) uri.userInfo.first;
         char *authPtr, *authUser, *authPassword;
         const char *delim = ":";
@@ -100,14 +106,17 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.hostText.first && opts & kHost) {
+        THROW_IF_NULL(uri.hostText)
         data->Set(host_symbol, v8::String::New(uri.hostText.first, uri.hostText.afterLast - uri.hostText.first), attrib);
     }
 
     if (uri.portText.first && opts & kPort) {
+        THROW_IF_NULL(uri.portText)
         data->Set(port_symbol, v8::String::New(uri.portText.first, uri.portText.afterLast - uri.portText.first), attrib);
     }
 
     if (uri.query.first && opts & kQuery) {
+        THROW_IF_NULL(uri.query)
         char *query = (char *) uri.query.first;
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
@@ -138,6 +147,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.fragment.first && opts & kFragment) {
+        THROW_IF_NULL(uri.fragment);
         data->Set(fragment_symbol, v8::String::New(uri.fragment.first, uri.fragment.afterLast - uri.fragment.first), attrib);
     }
 
@@ -147,6 +157,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         UriPathSegmentA *pathHead = uri.pathHead;
         do {
+            THROW_IF_NULL(pathHead->text)
             if (pathHead->text.first == pathHead->text.afterLast) {
                 len++;
             } else {
