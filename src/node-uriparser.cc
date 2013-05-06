@@ -201,7 +201,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     return scope.Close(data);
 }
 
-extern "C" void init (v8::Handle<v8::Object> target){
+void init (v8::Handle<v8::Object> target){
     v8::HandleScope scope;
 
     NODE_SET_METHOD(target, "parse", parse);
@@ -214,3 +214,5 @@ extern "C" void init (v8::Handle<v8::Object> target){
     NODE_DEFINE_CONSTANT(target, kPath);
     NODE_DEFINE_CONSTANT(target, kAll);
 }
+
+NODE_MODULE(uriparser, init)
