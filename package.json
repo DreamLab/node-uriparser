@@ -10,9 +10,6 @@
         "type": "git",
         "url": "https://github.com/DreamLab/uriparser.git"
     },
-    "scripts": {
-        "preinstall": "node-waf clean || true; node-waf configure build"
-    },
     "engines": {
         "node": ">= 0.8.0" 
     }
