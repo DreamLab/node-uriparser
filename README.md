@@ -1,5 +1,5 @@
 ##About:
-Bindings for Uriparser (http://uriparser.sourceforge.net/), gives > 3x better performance that built-in url.parse
+Bindings for Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse
 
 ##How to build/install:
 ```
