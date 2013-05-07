@@ -4,11 +4,11 @@ Bindings for Uriparser (http://uriparser.sourceforge.net/), gives > 3x better pe
 ##How to build/install:
 ```
 git submodule update --init --recursive
-node-waf configure build
+node-gyp configure build
 ```
 or
 ```
-    npm install uriparser
+npm install uriparser
 ```
 
 ##API:
