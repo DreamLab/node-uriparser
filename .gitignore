@@ -1,3 +1,4 @@
 .lock-wscript
 build/
+bin/uriparser.node
 *.sw?

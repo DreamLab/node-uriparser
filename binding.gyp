@@ -2,7 +2,9 @@
     "targets": [
         {
             "target_name": "uriparser",
-            "dependencies": ["liburiparser"],
+            "dependencies": [
+                "liburiparser"
+            ],
             "sources": [
                 "src/node-uriparser.cc"
             ],
@@ -19,12 +21,33 @@
         {
             "target_name": "liburiparser",
             "type": "none",
-            "actions": [{
-                "action_name": "build",
-                "inputs": [""],
-                "outputs": [""],
-                "action": ["sh", "build_uriparser.sh"]
-            }]
+            "actions": [
+                {
+                    "action_name": "build",
+                    "inputs": [""],
+                    "outputs": [""],
+                    "action": ["sh", "build_uriparser.sh"]
+                }
+            ]
+        },
+        {
+            "target_name": "after_build",
+            "type": "none",
+            "dependencies": [
+                "uriparser"
+            ],
+            "actions": [
+                {
+                    "action_name": "symlink",
+                    "inputs": [
+                        "<@(PRODUCT_DIR)/uriparser.node"
+                    ],
+                    "outputs": [
+                        "<(module_root_dir)/bin/uriparser.node"
+                    ],
+                    "action": ["ln", "-s", "<@(PRODUCT_DIR)/uriparser.node", "<(module_root_dir)/bin/uriparser.node"]
+                }
+            ]
         }
     ]
 }

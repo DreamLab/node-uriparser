@@ -5,7 +5,7 @@
     "keywords": ["uriparser", "uri", "parser", "url"],
     "author": "Jakub Lekstan <kuebzky@gmail.com>",
     "dependencies": {},
-    "main": "./lib/bindings.js",
+    "main": "./bin/uriparser.node",
     "repository": {
         "type": "git",
         "url": "https://github.com/DreamLab/uriparser.git"
