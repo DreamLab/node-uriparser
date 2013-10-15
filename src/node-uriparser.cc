@@ -23,10 +23,15 @@
 #include <v8.h>
 #include <node.h>
 #include <Uri.h>
+#include <map>
+#include <list>
+#include <string>
 
 #define THROW_IF_NULL(var) if (var.afterLast == NULL) { \
         return v8::ThrowException(v8::Exception::SyntaxError(v8::String::New("Bad string given"))); \
     }
+
+#define ENCODED_BRACKETS "%5B%5D"
 
 enum parseOptions {
     kProtocol = 1,
@@ -117,11 +122,12 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
     if (uri.query.first && opts & kQuery) {
         THROW_IF_NULL(uri.query)
+        std::map<std::string, std::list<const char *> > paramsMap;
         char *query = (char *) uri.query.first;
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
-             
+
         query[uri.query.afterLast - uri.query.first] = '\0';
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
 
@@ -129,12 +135,39 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         while (queryParam) {
             if (*queryParam != *sum) {
+                bool array = false;
+                int len;
                 empty = false;
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
+                len = strlen(queryParamKey);
+                if (len > (sizeof(ENCODED_BRACKETS) - 1) &&
+                        !strncmp(queryParamKey + len - (sizeof(ENCODED_BRACKETS) - 1),
+                                 ENCODED_BRACKETS,
+                                 sizeof(ENCODED_BRACKETS) - 1)) {
+                    array = true;
+                    queryParamKey[len - (sizeof(ENCODED_BRACKETS) - 1)] = '\0';
+                }
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
-                queryData->Set(v8::String::New(queryParamKey), v8::String::New(queryParamValue ? queryParamValue : ""), attrib);
+                v8::Local<v8::String> queryKey = v8::String::New(queryParamKey);
+                if (!array) {
+                    queryData->Set(queryKey, v8::String::New(queryParamValue ? queryParamValue : ""), attrib);
+                } else {
+                    paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
+                }
             }
             queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
+        }
+
+        for (std::map<std::string, std::list<const char *> >::iterator it=paramsMap.begin(); it!=paramsMap.end(); ++it) {
+            std::list<const char *> vals = it->second;
+            v8::Local<v8::String> key = v8::String::New(it->first.c_str());
+            v8::Local<v8::Array> arrVal = v8::Array::New(vals.size());
+            int i = 0;
+            for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
+                arrVal->Set(i, v8::String::New(*it2));
+                i++;
+            }
+            queryData->Set(key, arrVal);
         }
 
         //no need for empty object if the query string is going to be wrong
