@@ -103,7 +103,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
         if (authUser != NULL && authPassword != NULL) {
             v8::Local<v8::Object> authData = v8::Object::New();
-            authData->Set(user_symbol, v8::String::New(authUser)), attrib;
+            authData->Set(user_symbol, v8::String::New(authUser), attrib);
             authData->Set(password_symbol, v8::String::New(authPassword), attrib);
 
             data->Set(auth_symbol, authData, attrib);
@@ -136,7 +136,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         while (queryParam) {
             if (*queryParam != *sum) {
                 bool array = false;
-                int len;
+                size_t len;
                 empty = false;
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
                 len = strlen(queryParamKey);
