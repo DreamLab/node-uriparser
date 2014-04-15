@@ -11,6 +11,13 @@ or
 npm install uriparser
 ```
 
+##Requirements
+Library (uriparser) requires following packages to be installed:
+- automake
+- autoconf
+- libtool
+- pkg-config
+
 ##API:
 There is only one simple function: ````parse(url[, options]);````.
 
