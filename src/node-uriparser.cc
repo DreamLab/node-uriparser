@@ -49,6 +49,7 @@ static v8::Persistent<v8::String> auth_symbol = NODE_PSYMBOL("auth");
 static v8::Persistent<v8::String> host_symbol = NODE_PSYMBOL("host");
 static v8::Persistent<v8::String> port_symbol = NODE_PSYMBOL("port");
 static v8::Persistent<v8::String> query_symbol = NODE_PSYMBOL("query");
+static v8::Persistent<v8::String> query_arr_sufix = NODE_PSYMBOL("queryArraySufix");
 static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
 static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
 static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
@@ -127,15 +128,16 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
+        v8::Local<v8::Object> qsSufix = v8::Object::New();
 
         query[uri.query.afterLast - uri.query.first] = '\0';
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = v8::Object::New();
 
+        bool arrayEncodedBrackets = false;
         while (queryParam) {
             if (*queryParam != *sum) {
-                bool array = false;
                 size_t len;
                 empty = false;
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
@@ -144,16 +146,13 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                         !strncmp(queryParamKey + len - (sizeof(ENCODED_BRACKETS) - 1),
                                  ENCODED_BRACKETS,
                                  sizeof(ENCODED_BRACKETS) - 1)) {
-                    array = true;
+                    arrayEncodedBrackets = true;
                     queryParamKey[len - (sizeof(ENCODED_BRACKETS) - 1)] = '\0';
+                    qsSufix->Set(v8::String::New(queryParamKey), v8::String::New(ENCODED_BRACKETS));
                 }
+
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
-                v8::Local<v8::String> queryKey = v8::String::New(queryParamKey);
-                if (!array) {
-                    queryData->Set(queryKey, v8::String::New(queryParamValue ? queryParamValue : ""), attrib);
-                } else {
-                    paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
-                }
+                paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
             }
             queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
         }
@@ -161,18 +160,27 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         for (std::map<std::string, std::list<const char *> >::iterator it=paramsMap.begin(); it!=paramsMap.end(); ++it) {
             std::list<const char *> vals = it->second;
             v8::Local<v8::String> key = v8::String::New(it->first.c_str());
-            v8::Local<v8::Array> arrVal = v8::Array::New(vals.size());
-            int i = 0;
-            for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                arrVal->Set(i, v8::String::New(*it2));
-                i++;
+            int arrSize = vals.size();
+            if (arrSize > 1) {
+                v8::Local<v8::Array> arrVal = v8::Array::New(arrSize);
+
+                int i = 0;
+                for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
+                    arrVal->Set(i, v8::String::New(*it2));
+                    i++;
+                }
+                queryData->Set(key, arrVal);
+            } else {
+                queryData->Set(key, v8::String::New((vals.front())));
             }
-            queryData->Set(key, arrVal);
         }
 
         //no need for empty object if the query string is going to be wrong
         if (!empty) {
             data->Set(query_symbol, queryData, attrib);
+            if (arrayEncodedBrackets) {
+                data->Set(query_arr_sufix, qsSufix, attrib);
+            }
         }
         //parsing the path will be easier
         query--;
