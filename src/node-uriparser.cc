@@ -49,7 +49,7 @@ static v8::Persistent<v8::String> auth_symbol = NODE_PSYMBOL("auth");
 static v8::Persistent<v8::String> host_symbol = NODE_PSYMBOL("host");
 static v8::Persistent<v8::String> port_symbol = NODE_PSYMBOL("port");
 static v8::Persistent<v8::String> query_symbol = NODE_PSYMBOL("query");
-static v8::Persistent<v8::String> query_arr_sufix = NODE_PSYMBOL("queryArraySufix");
+static v8::Persistent<v8::String> query_arr_suffix = NODE_PSYMBOL("queryArraySuffix");
 static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
 static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
 static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
@@ -128,7 +128,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
-        v8::Local<v8::Object> qsSufix = v8::Object::New();
+        v8::Local<v8::Object> qsSuffix = v8::Object::New();
 
         query[uri.query.afterLast - uri.query.first] = '\0';
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
@@ -148,7 +148,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                                  sizeof(ENCODED_BRACKETS) - 1)) {
                     arrayEncodedBrackets = true;
                     queryParamKey[len - (sizeof(ENCODED_BRACKETS) - 1)] = '\0';
-                    qsSufix->Set(v8::String::New(queryParamKey), v8::String::New(ENCODED_BRACKETS));
+                    qsSuffix->Set(v8::String::New(queryParamKey), v8::String::New(ENCODED_BRACKETS));
                 }
 
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
@@ -179,7 +179,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         if (!empty) {
             data->Set(query_symbol, queryData, attrib);
             if (arrayEncodedBrackets) {
-                data->Set(query_arr_sufix, qsSufix, attrib);
+                data->Set(query_arr_suffix, qsSuffix, attrib);
             }
         }
         //parsing the path will be easier
