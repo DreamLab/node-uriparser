@@ -26,6 +26,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <vector>
 
 #define THROW_IF_NULL(var) if (var.afterLast == NULL) { \
         return v8::ThrowException(v8::Exception::SyntaxError(v8::String::New("Bad string given"))); \
@@ -124,6 +125,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     if (uri.query.first && opts & kQuery) {
         THROW_IF_NULL(uri.query)
         std::map<std::string, std::list<const char *> > paramsMap;
+        std::vector<std::string> paramsOrder;
         char *query = (char *) uri.query.first;
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
@@ -152,14 +154,18 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                 }
 
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
+                if (paramsMap.find(queryParamKey) == paramsMap.end()) {
+                    paramsOrder.push_back(queryParamKey);
+                }
                 paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
             }
             queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
         }
 
-        for (std::map<std::string, std::list<const char *> >::iterator it=paramsMap.begin(); it!=paramsMap.end(); ++it) {
-            std::list<const char *> vals = it->second;
-            v8::Local<v8::String> key = v8::String::New(it->first.c_str());
+
+        for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
+            v8::Local<v8::String> key = v8::String::New(it->c_str());
+            std::list<const char *> vals = paramsMap[*it];
             int arrSize = vals.size();
             if (arrSize > 1) {
                 v8::Local<v8::Array> arrVal = v8::Array::New(arrSize);
