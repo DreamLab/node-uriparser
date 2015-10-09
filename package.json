@@ -1,6 +1,6 @@
 {
     "name": "uriparser",
-    "version": "1.3.3",
+    "version": "1.3.4",
     "description": "Fastest uriparser, written in C",
     "keywords": ["uriparser", "uri", "parser", "url"],
     "author": "Jakub Lekstan <kuebzky@gmail.com>",
@@ -11,6 +11,6 @@
         "url": "https://github.com/DreamLab/uriparser.git"
     },
     "engines": {
-        "node": ">= 0.8.0" 
+        "node": ">= 0.8.0"
     }
 }
