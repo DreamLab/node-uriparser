@@ -1,5 +1,5 @@
 ##About:
-Bindings for Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse
+Bindings for uri-parser (https://github.com/Aldor007/uri-parser), gives > 10x better performance that built-in url.parse
 
 ##How to build/install:
 ```
@@ -11,12 +11,6 @@ or
 npm install uriparser
 ```
 
-##Requirements
-Library (uriparser) requires following packages to be installed:
-- automake
-- autoconf
-- libtool
-- pkg-config
 
 ##API:
 There is only one simple function: ````parse(url[, options]);````.

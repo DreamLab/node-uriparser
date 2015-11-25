@@ -1,3 +1,3 @@
-[submodule "deps/uriparser"]
-	path = deps/uriparser
-	url = git://git.code.sf.net/p/uriparser/git
+[submodule "deps/uri-parser"]
+	path = deps/uri-parser
+	url = https://github.com/Aldor007/uri-parser
