@@ -21,11 +21,11 @@
  */
 
 #include <v8.h>
-#include <algorithm>
 #include <node.h>
 #include <map>
 #include <list>
 #include <string>
+#include <cstring>
 #include <cstring>
 #include <vector>
 
@@ -79,11 +79,10 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         opts = static_cast<parseOptions>(args[1]->Int32Value());
     }
 
-    v8::String::Utf8Value v8Url(args[0]->ToString());
+    v8::String::Utf8Value url(args[0]->ToString());
 
-    std::string url(*v8Url);
 
-    if (url.size() == 0) {
+    if (url.length() == 0) {
         return v8::ThrowException(v8::Exception::TypeError(v8::String::New("String mustn't be empty")));
     }
 
@@ -91,13 +90,13 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::Local<v8::Object> data = v8::Object::New();
 
     ngx_http_url uri;
-    if( ngx_url_parser(&uri, url.c_str()) != NGX_URL_OK) {
+    if( ngx_url_parser(&uri, *url) != NGX_URL_OK) {
         return v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
     }
 
     if (uri.schema && (opts & kProtocol)) {
         // +1 here because we need : after protocol
-        data->Set(protocol_symbol, v8::String::New(uri.schema), attrib);
+        data->Set(protocol_symbol, v8::String::New(std::strcat(uri.schema, ":")), attrib);
     }
 
     if (uri.userpass && (opts & kAuth)) {
