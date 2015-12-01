@@ -26,7 +26,6 @@
 #include <list>
 #include <string>
 #include <cstring>
-#include <cstring>
 #include <vector>
 
 extern "C" {

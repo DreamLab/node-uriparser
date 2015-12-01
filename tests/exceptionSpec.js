@@ -35,4 +35,9 @@ describe("uriparser - exceptions", function () {
         }).toThrow();
     });
 
+    it('1.txt?test1=okok', function () {
+        expect(function () {
+            uriparser.parse('1.txt?test1=okok');
+        }).toThrow();
+    });
 });
