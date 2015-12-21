@@ -9,7 +9,9 @@
                 "src/node-uriparser.cc"
             ],
             "include_dirs": [
-                "<(module_root_dir)/deps/ngx_url_parser"
+                "<(module_root_dir)/deps/ngx_url_parser",
+                "<!(node -e \"require('nan')\")"
+
             ],
             "cflags": [
                 "-g"

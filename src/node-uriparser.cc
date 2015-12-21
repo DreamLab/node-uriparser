@@ -20,25 +20,17 @@
  * THE SOFTWARE.
  */
 
-#include <v8.h>
-#include <node.h>
 #include <map>
 #include <list>
 #include <string>
 #include <cstring>
 #include <vector>
+#include <nan.h>
 
 extern "C" {
 #include <ngx_url_parser.h>
 }
 
-#define THROW_IF_NULL(var) if (var.afterLast == NULL) { \
-        return v8::ThrowException(v8::Exception::SyntaxError(v8::String::New("Bad string given"))); \
-    }
-
-#define THROW_IF_EMPTY(var) if (var.empty()) { \
-return v8::ThrowException(v8::Exception::SyntaxError(v8::String::New("Bad string given"))); \
-}
 
 #define ENCODED_BRACKETS "%5B%5D"
 #define BRACKETS "[]"
@@ -54,48 +46,51 @@ enum parseOptions {
     kAll = kProtocol | kAuth | kHost | kPort | kQuery | kFragment | kPath
 };
 
-static v8::Persistent<v8::String> protocol_symbol = NODE_PSYMBOL("protocol");
-static v8::Persistent<v8::String> auth_symbol = NODE_PSYMBOL("auth");
-static v8::Persistent<v8::String> host_symbol = NODE_PSYMBOL("host");
-static v8::Persistent<v8::String> port_symbol = NODE_PSYMBOL("port");
-static v8::Persistent<v8::String> query_symbol = NODE_PSYMBOL("query");
-static v8::Persistent<v8::String> query_arr_suffix = NODE_PSYMBOL("queryArraySuffix");
-static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
-static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
-static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
-static v8::Persistent<v8::String> password_symbol = NODE_PSYMBOL("password");
+#define URI_PSYMBOL(name) Nan::New<v8::String>(name).ToLocalChecked()
 
-static v8::Handle<v8::Value> parse(const v8::Arguments& args){
-    v8::HandleScope scope;
+static Nan::Persistent<v8::String> protocol_symbol(URI_PSYMBOL("protocol"));
+static Nan::Persistent<v8::String> auth_symbol(URI_PSYMBOL("auth"));
+static Nan::Persistent<v8::String> host_symbol(URI_PSYMBOL("host"));
+static Nan::Persistent<v8::String> port_symbol(URI_PSYMBOL("port"));
+static Nan::Persistent<v8::String> query_symbol(URI_PSYMBOL("query"));
+static Nan::Persistent<v8::String> queryArraySuffix_symbol(URI_PSYMBOL("queryArraySuffix"));
+static Nan::Persistent<v8::String> fragment_symbol(URI_PSYMBOL("fragment"));
+static Nan::Persistent<v8::String> path_symbol(URI_PSYMBOL("path"));
+static Nan::Persistent<v8::String> user_symbol(URI_PSYMBOL("user"));
+static Nan::Persistent<v8::String> password_symbol(URI_PSYMBOL("password"));
 
+
+NAN_METHOD(parse) {
     parseOptions opts = kAll;
 
-    if (args.Length() == 0 || !args[0]->IsString()) {
-        return v8::ThrowException(v8::Exception::TypeError(v8::String::New("First argument has to be string")));
+    if (info.Length() == 0 || !info[0]->IsString()) {
+        return Nan::ThrowError("First argument has to be string");
     }
 
-    if (args[1]->IsNumber()) {
-        opts = static_cast<parseOptions>(args[1]->Int32Value());
+    if (info[1]->IsNumber()) {
+        opts = static_cast<parseOptions>(info[1]->Int32Value());
     }
 
-    v8::String::Utf8Value url(args[0]->ToString());
-
+    Nan::Utf8String  url(info[0]->ToString());
 
     if (url.length() == 0) {
-        return v8::ThrowException(v8::Exception::TypeError(v8::String::New("String mustn't be empty")));
+        Nan::ThrowTypeError("String mustn't be empty");
+        return;
     }
 
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
-    v8::Local<v8::Object> data = v8::Object::New();
+    v8::Local<v8::Object> data = Nan::New<v8::Object>();
 
     ngx_http_url uri;
     if( ngx_url_parser(&uri, *url) != NGX_URL_OK) {
-        return v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
+        Nan::ThrowError("Unable to parse given url");
+        return;
     }
+
 
     if (uri.schema && (opts & kProtocol)) {
         // +1 here because we need : after protocol
-        data->Set(protocol_symbol, v8::String::New(std::strcat(uri.schema, ":")), attrib);
+        data->ForceSet(Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(std::strcat(uri.schema, ":")).ToLocalChecked(), attrib);
     }
 
     if (uri.userpass && (opts & kAuth)) {
@@ -106,20 +101,20 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         authPassword = strtok_r(NULL, delim, &authPtr);
 
         if (authUser != NULL && authPassword != NULL) {
-            v8::Local<v8::Object> authData = v8::Object::New();
-            authData->Set(user_symbol, v8::String::New(authUser), attrib);
-            authData->Set(password_symbol, v8::String::New(authPassword), attrib);
+            v8::Local<v8::Object> authData = Nan::New<v8::Object>();
+            authData->ForceSet(Nan::New(user_symbol), Nan::New<v8::String>(authUser).ToLocalChecked(), attrib);
+            authData->ForceSet(Nan::New(password_symbol), Nan::New<v8::String>(authPassword).ToLocalChecked(), attrib);
 
-            data->Set(auth_symbol, authData, attrib);
+            data->ForceSet(Nan::New(auth_symbol), authData, attrib);
         }
     }
 
     if (uri.host && (opts & kHost)) {
-        data->Set(host_symbol, v8::String::New(uri.host), attrib);
+        data->ForceSet(Nan::New(host_symbol), Nan::New<v8::String>(uri.host).ToLocalChecked(), attrib);
     }
 
     if (uri.port && (opts & kPort)) {
-        data->Set(port_symbol, v8::String::New(uri.port), attrib);
+        data->ForceSet(Nan::New(port_symbol), Nan::New<v8::String>(uri.port).ToLocalChecked(), attrib);
     }
 
     if (uri.query && (opts & kQuery)) {
@@ -129,11 +124,11 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
-        v8::Local<v8::Object> qsSuffix = v8::Object::New();
+        v8::Local<v8::Object> qsSuffix = Nan::New<v8::Object>();
 
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
 
-        v8::Local<v8::Object> queryData = v8::Object::New();
+        v8::Local<v8::Object> queryData = Nan::New<v8::Object>();
         bool arrayBrackets = false;
         while (queryParam) {
             if (*queryParam != *sum) {
@@ -147,14 +142,14 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                                  sizeof(ENCODED_BRACKETS) - 1)) {
                     arrayBrackets = true;
                     queryParamKey[len - (sizeof(ENCODED_BRACKETS) - 1)] = '\0';
-                    qsSuffix->Set(v8::String::New(queryParamKey), v8::String::New(ENCODED_BRACKETS));
+                    qsSuffix->Set(Nan::New<v8::String>(queryParamKey).ToLocalChecked(), Nan::New<v8::String>(ENCODED_BRACKETS).ToLocalChecked());
                 } else if (len > (sizeof(BRACKETS) - 1) &&
                         !strncmp(queryParamKey + len - (sizeof(BRACKETS) - 1),
                                  BRACKETS,
                                  sizeof(BRACKETS) - 1)) {
                     arrayBrackets = true;
                     queryParamKey[len - (sizeof(BRACKETS) - 1)] = '\0';
-                    qsSuffix->Set(v8::String::New(queryParamKey), v8::String::New(BRACKETS));
+                    qsSuffix->Set(Nan::New<v8::String>(queryParamKey).ToLocalChecked(), Nan::New<v8::String>(BRACKETS).ToLocalChecked());
                 }
 
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
@@ -168,51 +163,52 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
 
         for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
-            v8::Local<v8::String> key = v8::String::New(it->c_str());
+            v8::Local<v8::String> key = Nan::New<v8::String>(it->c_str()).ToLocalChecked();
             std::list<const char *> vals = paramsMap[*it];
             int arrSize = vals.size();
             if (arrSize > 1 || qsSuffix->Has(key)) {
-                v8::Local<v8::Array> arrVal = v8::Array::New(arrSize);
+                v8::Local<v8::Array> arrVal = Nan::New<v8::Array>(arrSize);
 
                 int i = 0;
                 for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                    arrVal->Set(i, v8::String::New(*it2));
+                    arrVal->Set(i, Nan::New<v8::String>(*it2).ToLocalChecked());
                     i++;
                 }
                 queryData->Set(key, arrVal);
             } else {
-                queryData->Set(key, v8::String::New((vals.front())));
+                queryData->Set(key, Nan::New<v8::String>(vals.front()).ToLocalChecked());
             }
         }
 
         //no need for empty object if the query string is going to be wrong
         if (!empty) {
-            data->Set(query_symbol, queryData, attrib);
+            data->ForceSet(Nan::New(query_symbol), queryData, attrib);
             if (arrayBrackets) {
-                data->Set(query_arr_suffix, qsSuffix, attrib);
+                data->ForceSet(Nan::New(queryArraySuffix_symbol), qsSuffix, attrib);
             }
         }
     }
 
     if (uri.fragment && (opts & kFragment)) {
-        data->Set(fragment_symbol, v8::String::New(uri.fragment), attrib);
+        data->ForceSet(Nan::New(fragment_symbol), Nan::New<v8::String>(uri.fragment).ToLocalChecked(), attrib);
     }
 
     if (uri.path && (opts & kPath)) {
-        data->Set(path_symbol, v8::String::New(uri.path), attrib);
+        data->ForceSet(Nan::New(path_symbol), Nan::New<v8::String>(uri.path).ToLocalChecked(), attrib);
     } else {
-        data->Set(path_symbol, v8::String::New("/"), attrib);
+        data->ForceSet(Nan::New(path_symbol), Nan::New<v8::String>("/").ToLocalChecked(), attrib);
     }
 
     ngx_url_free(&uri);
 
-    return scope.Close(data);
+    info.GetReturnValue().Set(data);
 }
 
 void init (v8::Handle<v8::Object> target){
-    v8::HandleScope scope;
 
-    NODE_SET_METHOD(target, "parse", parse);
+#define URI_DEFINE_CONSTANT(name) target->Set(Nan::New<v8::String>( #name ).ToLocalChecked(), ##name);
+
+    Nan::SetMethod(target, "parse", parse);
     NODE_DEFINE_CONSTANT(target, kProtocol);
     NODE_DEFINE_CONSTANT(target, kAuth);
     NODE_DEFINE_CONSTANT(target, kHost);
