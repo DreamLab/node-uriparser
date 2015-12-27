@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+    - "0.8"
+install:
+    - sudo apt-get install automake
+    - sudo apt-get install autoconf
+    - sudo apt-get install libtool
+    - sudo apt-get install pkg-config
+    - npm install
+    - npm install -g jasmine-node
+script:
+    - jasmine-node --verbose tests
