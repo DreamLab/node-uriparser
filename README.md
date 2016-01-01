@@ -3,7 +3,8 @@
 #node-uriparser
 
 ##About:
-Bindings for Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse
+Bindings for RFC strict Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse.
+From version 2.0.0 you can use non-strict NGINX based parser(https://github.com/Aldor007/ngx_url_parser) which is event faster.
 
 ##How to build/install:
 ```
@@ -30,7 +31,8 @@ Optional argument ````options```` lets you tell the library what your interests 
 Available options: ````kProtocol````, ````kAuth````, ````kHost````, ````kPort````, ````kQuery````, ````kFragment````, ````kPath````, ````kAll````
 
 ##Example:
-```
+```js
+
 var uriparser = require('uriparser');
 
 var u = uriparser.parse('http://github.com');
@@ -44,6 +46,7 @@ console.log(q);
 
 ##Benchmarks:
 Just run ````time node examples/benchmark1.js```` and ````time node examples/benchmark2.js```` and compare the results.
+
 
 ##License:
 ```

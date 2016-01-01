@@ -19,20 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-var uriparser = require("../bin/uriparser.node");
 
+var uriparser = require('../bin/uriparser'), url = "http://10.177.51.76:1337//example/dir/hi", matches;
 
-describe("uriparser - exceptions", function () {
-    it("wrong type given", function () {
-        expect(function () {
-            uriparser.parse(123);
-        }).toThrow();
-    });
+for (var i = 0; i < 2000000; i++) {
+    matches = uriparser.parse(url, uriparser.kAll, uriparser.eNgxParser);
+}
 
-    it("empty string given", function () {
-        expect(function () {
-            uriparser.parse("");
-        }).toThrow();
-    });
-
-});

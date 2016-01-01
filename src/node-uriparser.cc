@@ -26,11 +26,7 @@
 #include <cstring>
 #include <vector>
 #include <nan.h>
-
-extern "C" {
-#include <ngx_url_parser.h>
-}
-
+#include "parser.hpp"
 
 #define ENCODED_BRACKETS "%5B%5D"
 #define BRACKETS "[]"
@@ -44,6 +40,11 @@ enum parseOptions {
     kFragment = 1 << 5,
     kPath = 1 << 6,
     kAll = kProtocol | kAuth | kHost | kPort | kQuery | kFragment | kPath
+};
+
+enum Engines {
+    eRfcParser = 1,
+    eNgxParser
 };
 
 #define URI_PSYMBOL(name) Nan::New<v8::String>(name).ToLocalChecked()
@@ -62,6 +63,7 @@ static Nan::Persistent<v8::String> password_symbol(URI_PSYMBOL("password"));
 
 NAN_METHOD(parse) {
     parseOptions opts = kAll;
+    Engines engine = eRfcParser;
 
     if (info.Length() == 0 || !info[0]->IsString()) {
         return Nan::ThrowError("First argument has to be string");
@@ -78,26 +80,37 @@ NAN_METHOD(parse) {
         return;
     }
 
+    if (info[2]->IsNumber()) {
+        engine = static_cast<Engines>(info[2]->Int32Value());
+    }
+
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
     v8::Local<v8::Object> data = Nan::New<v8::Object>();
 
-    ngx_http_url uri;
-    if( ngx_url_parser(&uri, *url) != NGX_URL_OK) {
+    Url uri;
+    Parser *parser;
+
+    if (engine == eNgxParser) {
+        parser = new NgxParser(*url);
+    } else {
+        parser = new RfcParser(*url);
+    }
+
+    if (parser->status != Parser::OK) {
         Nan::ThrowError("Unable to parse given url");
         return;
     }
-
+    uri = parser->url;
 
     if (uri.schema && (opts & kProtocol)) {
-        // +1 here because we need : after protocol
         data->ForceSet(Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(std::strcat(uri.schema, ":")).ToLocalChecked(), attrib);
     }
 
-    if (uri.userpass && (opts & kAuth)) {
+    if (uri.auth && (opts & kAuth)) {
         const char *delim = ":";
         char *authPtr, *authUser, *authPassword;
 
-        authUser = strtok_r(uri.userpass, delim, &authPtr);
+        authUser = strtok_r(uri.auth, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
 
         if (authUser != NULL && authPassword != NULL) {
@@ -199,14 +212,13 @@ NAN_METHOD(parse) {
         data->ForceSet(Nan::New(path_symbol), Nan::New<v8::String>("/").ToLocalChecked(), attrib);
     }
 
-    ngx_url_free(&uri);
+    delete parser;
 
     info.GetReturnValue().Set(data);
 }
 
 void init (v8::Handle<v8::Object> target){
 
-#define URI_DEFINE_CONSTANT(name) target->Set(Nan::New<v8::String>( #name ).ToLocalChecked(), ##name);
 
     Nan::SetMethod(target, "parse", parse);
     NODE_DEFINE_CONSTANT(target, kProtocol);
@@ -217,6 +229,10 @@ void init (v8::Handle<v8::Object> target){
     NODE_DEFINE_CONSTANT(target, kFragment);
     NODE_DEFINE_CONSTANT(target, kPath);
     NODE_DEFINE_CONSTANT(target, kAll);
+
+    NODE_DEFINE_CONSTANT(target, eNgxParser);
+    NODE_DEFINE_CONSTANT(target, eRfcParser);
+
 }
 
 NODE_MODULE(uriparser, init)
