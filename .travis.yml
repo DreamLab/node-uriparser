@@ -20,4 +20,5 @@ addons:
             - libtool
             - pkg-config
 script:
+    - npm install -g jasmine-node
     - jasmine-node --verbose tests
