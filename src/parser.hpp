@@ -5,19 +5,26 @@ extern "C" {
 
 // base structure for url properties
 typedef struct {
-    char * schema = NULL;
-    char * host = NULL;
-    char * path = NULL;
-    char * query = NULL;
-    char * fragment = NULL;
-    char * port = NULL;
-    char * auth = NULL;
+    char * schema;
+    char * host;
+    char * path;
+    char * query;
+    char * fragment;
+    char * port;
+    char * auth;
 } Url;
 
 
 class Parser {
     public:
         Parser(const char * str): m_str(str) {
+            url.schema = NULL;
+            url.host = NULL;
+            url.path = NULL;
+            url.query = NULL;
+            url.fragment = NULL;
+            url.port = NULL;
+            url.auth = NULL;
         }
 
         virtual ~Parser() {
@@ -41,6 +48,7 @@ class NgxParser: public Parser {
                 status = Parser::OK;
             } else {
                 status = Parser::ERROR;
+                return;
             }
 
             url.schema = ngx_url.schema;
@@ -49,7 +57,7 @@ class NgxParser: public Parser {
             url.query = ngx_url.query;
             url.fragment = ngx_url.fragment;
             url.port = ngx_url.port;
-            url.auth   = ngx_url.auth;
+            url.auth = ngx_url.auth;
         }
 
         virtual ~NgxParser() {
@@ -71,6 +79,7 @@ class RfcParser: public Parser {
             status = Parser::OK;
         } else {
             status = Parser::ERROR;
+            return;
         }
 
         if (uri.scheme.first) {
