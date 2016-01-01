@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/DreamLab/node-uriparser.svg?branch=master)](https://travis-ci.org/DreamLab/node-uriparser)
+
+#node-uriparser
+
 ##About:
 Bindings for Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse
 
