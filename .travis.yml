@@ -7,15 +7,19 @@ node_js:
     - "5"
 env:
     - CXX=g++-4.8
-install:
-    # node 4 and 5
-    - sudo apt-get install g++-4.8
-    # uriparser
-    - sudo apt-get install automake
-    - sudo apt-get install autoconf
-    - sudo apt-get install libtool
-    - sudo apt-get install pkg-config
-    - npm install
-    - npm install -g jasmine-node
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            # node 4 and 5
+            - g++-4.8
+            # uriparser
+            - automake
+            - autoconf
+            - libtool
+            - pkg-config
 script:
+    - npm install
+    - npm install jasmine-node
     - jasmine-node --verbose tests
