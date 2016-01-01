@@ -1,12 +1,16 @@
 language: node_js
 node_js:
-    - "0.4"
     - "0.8"
     - "0.10"
     - "0.12"
-    - "4.2.1"
-    - "5.0"
+    - "4"
+    - "5"
+env:
+    - CXX=g++-4.8
 install:
+    # node 4 and 5
+    - sudo apt-get install g++-4.8
+    # uriparser
     - sudo apt-get install automake
     - sudo apt-get install autoconf
     - sudo apt-get install libtool
