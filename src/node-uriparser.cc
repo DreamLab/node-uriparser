@@ -26,11 +26,9 @@
 #include <map>
 #include <list>
 #include <string>
+#include "parser.hpp"
 
-#define THROW_IF_NULL(var) if (var.afterLast == NULL) { \
-        return v8::ThrowException(v8::Exception::SyntaxError(v8::String::New("Bad string given"))); \
-    }
-
+#define BRACKETS "[]"
 #define ENCODED_BRACKETS "%5B%5D"
 
 enum parseOptions {
@@ -44,11 +42,17 @@ enum parseOptions {
     kAll = kProtocol | kAuth | kHost | kPort | kQuery | kFragment | kPath
 };
 
+enum Engines {
+    eRfcParser = 1,
+    eNgxParser
+};
+
 static v8::Persistent<v8::String> protocol_symbol = NODE_PSYMBOL("protocol");
 static v8::Persistent<v8::String> auth_symbol = NODE_PSYMBOL("auth");
 static v8::Persistent<v8::String> host_symbol = NODE_PSYMBOL("host");
 static v8::Persistent<v8::String> port_symbol = NODE_PSYMBOL("port");
 static v8::Persistent<v8::String> query_symbol = NODE_PSYMBOL("query");
+static v8::Persistent<v8::String> query_arr_suffix = NODE_PSYMBOL("queryArraySuffix");
 static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
 static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
 static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
@@ -58,6 +62,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::HandleScope scope;
 
     parseOptions opts = kAll;
+    Engines engine = eRfcParser;
 
     if (args.Length() == 0 || !args[0]->IsString()) {
         return v8::ThrowException(v8::Exception::TypeError(v8::String::New("First argument has to be string")));
@@ -67,38 +72,43 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         opts = static_cast<parseOptions>(args[1]->Int32Value());
     }
 
-    v8::String::AsciiValue url (args[0]->ToString());
+    v8::String::Utf8Value url(args[0]->ToString());
 
     if (url.length() == 0) {
         return v8::ThrowException(v8::Exception::TypeError(v8::String::New("String mustn't be empty")));
     }
 
-    UriParserStateA state;
-    UriUriA uri;
-
-    state.uri = &uri;
-
-    if (uriParseUriA(&state, *url) != URI_SUCCESS) {
-        return v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
+    if (args[2]->IsNumber()) {
+        engine = static_cast<Engines>(args[2]->Int32Value());
     }
 
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
     v8::Local<v8::Object> data = v8::Object::New();
 
-    if (uri.scheme.first && opts & kProtocol) {
-        THROW_IF_NULL(uri.scheme)
-        // +1 here because we need : after protocol
-        data->Set(protocol_symbol, v8::String::New(uri.scheme.first, (uri.scheme.afterLast - uri.scheme.first) + 1), attrib);
+    Url uri;
+    Parser *parser;
+
+    if (engine == eNgxParser) {
+        parser = new NgxParser(*url);
+    } else {
+        parser = new RfcParser(*url);
     }
 
-    if (uri.userInfo.first && opts & kAuth) {
-        THROW_IF_NULL(uri.userInfo)
-        char *auth = (char *) uri.userInfo.first;
-        char *authPtr, *authUser, *authPassword;
-        const char *delim = ":";
-        auth[uri.userInfo.afterLast - uri.userInfo.first] = '\0';
+    if (parser->status != Parser::OK) {
+        return v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
+    }
 
-        authUser = strtok_r(auth, delim, &authPtr);
+    uri = parser->url;
+
+    if (uri.schema && (opts & kProtocol)) {
+        data->Set(protocol_symbol, v8::String::New(std::strcat(uri.schema, ":")), attrib);
+    }
+
+    if (uri.userpass && (opts & kAuth)) {
+        const char *delim = ":";
+        char *authPtr, *authUser, *authPassword;
+
+        authUser = strtok_r(uri.userpass, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
 
         if (authUser != NULL && authPassword != NULL) {
@@ -110,32 +120,30 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         }
     }
 
-    if (uri.hostText.first && opts & kHost) {
-        THROW_IF_NULL(uri.hostText)
-        data->Set(host_symbol, v8::String::New(uri.hostText.first, uri.hostText.afterLast - uri.hostText.first), attrib);
+    if (uri.host && (opts & kHost)) {
+        data->Set(host_symbol, v8::String::New(uri.host), attrib);
     }
 
-    if (uri.portText.first && opts & kPort) {
-        THROW_IF_NULL(uri.portText)
-        data->Set(port_symbol, v8::String::New(uri.portText.first, uri.portText.afterLast - uri.portText.first), attrib);
+    if (uri.port && (opts & kPort)) {
+        data->Set(port_symbol, v8::String::New(uri.port), attrib);
     }
 
-    if (uri.query.first && opts & kQuery) {
-        THROW_IF_NULL(uri.query)
+    if (uri.query && (opts & kQuery)) {
         std::map<std::string, std::list<const char *> > paramsMap;
-        char *query = (char *) uri.query.first;
+        std::vector<std::string> paramsOrder;
+        char *query = uri.query;
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
+        v8::Local<v8::Object> qsSuffix = v8::Object::New();
 
         query[uri.query.afterLast - uri.query.first] = '\0';
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = v8::Object::New();
-
+        bool arrayBrackets = false;
         while (queryParam) {
             if (*queryParam != *sum) {
-                bool array = false;
                 size_t len;
                 empty = false;
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
@@ -144,28 +152,41 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                         !strncmp(queryParamKey + len - (sizeof(ENCODED_BRACKETS) - 1),
                                  ENCODED_BRACKETS,
                                  sizeof(ENCODED_BRACKETS) - 1)) {
-                    array = true;
+                    arrayBrackets = true;
                     queryParamKey[len - (sizeof(ENCODED_BRACKETS) - 1)] = '\0';
+                    qsSuffix->Set(v8::String::New(queryParamKey), v8::String::New(ENCODED_BRACKETS));
+                } else if (len > (sizeof(BRACKETS) - 1) &&
+                        !strncmp(queryParamKey + len - (sizeof(BRACKETS) - 1),
+                                 BRACKETS,
+                                 sizeof(BRACKETS) - 1)) {
+                    arrayBrackets = true;
+                    queryParamKey[len - (sizeof(BRACKETS) - 1)] = '\0';
+                    qsSuffix->Set(v8::String::New(queryParamKey), v8::String::New(BRACKETS));
                 }
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
-                v8::Local<v8::String> queryKey = v8::String::New(queryParamKey);
-                if (!array) {
-                    queryData->Set(queryKey, v8::String::New(queryParamValue ? queryParamValue : ""), attrib);
-                } else {
-                    paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
+                if (paramsMap.find(queryParamKey) == paramsMap.end()) {
+                    paramsOrder.push_back(queryParamKey);
                 }
+                paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
             }
             queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
         }
 
-        for (std::map<std::string, std::list<const char *> >::iterator it=paramsMap.begin(); it!=paramsMap.end(); ++it) {
-            std::list<const char *> vals = it->second;
-            v8::Local<v8::String> key = v8::String::New(it->first.c_str());
-            v8::Local<v8::Array> arrVal = v8::Array::New(vals.size());
-            int i = 0;
-            for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                arrVal->Set(i, v8::String::New(*it2));
-                i++;
+        for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
+            v8::Local<v8::String> key = v8::String::New(it->c_str());
+            std::list<const char *> vals = paramsMap[*it];
+            int arrSize = vals.size();
+            if (arrSize > 1 || qsSuffix->Has(key)) {
+                v8::Local<v8::Array> arrVal = v8::Array::New(arrSize);
+
+                int i = 0;
+                for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
+                    arrVal->Set(i, v8::String::New(*it2));
+                    i++;
+                }
+                queryData->Set(key, arrVal);
+            } else {
+                queryData->Set(key, v8::String::New((vals.front())));
             }
             queryData->Set(key, arrVal);
         }
@@ -173,63 +194,26 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         //no need for empty object if the query string is going to be wrong
         if (!empty) {
             data->Set(query_symbol, queryData, attrib);
+            if (arrayBrackets) {
+                data->Set(query_arr_suffix, qsSuffix, attrib);
+            }
         }
         //parsing the path will be easier
         query--;
         *query = '\0';
     }
 
-    if (uri.fragment.first && opts & kFragment) {
-        THROW_IF_NULL(uri.fragment);
-        data->Set(fragment_symbol, v8::String::New(uri.fragment.first, uri.fragment.afterLast - uri.fragment.first), attrib);
+    if (uri.fragment && opts & kFragment) {
+        data->Set(fragment_symbol, v8::String::New(uri.fragment), attrib);
     }
 
-    if (uri.pathHead && uri.pathHead->text.first && opts & kPath) {
-        int len = 0;
-
-
-        UriPathSegmentA *pathHead = uri.pathHead;
-        do {
-            THROW_IF_NULL(pathHead->text)
-            if (pathHead->text.first == pathHead->text.afterLast) {
-                len++;
-            } else {
-                //len +1 because we need to add slash
-                len += pathHead->text.afterLast - pathHead->text.first + 1;
-            }
-            pathHead = pathHead->next;
-        } while (pathHead);
-
-        char *path, *p, *tmp;
-        path = p = tmp = (char *) malloc(len + 1);
-        path[len] = '\0';
-
-        pathHead = uri.pathHead;
-        do {
-            //adding slash no matter what
-            *path = '/';
-            path++;
-            //copying text only in case when path segment is not empty
-            if (pathHead->text.first != pathHead->text.afterLast) {
-                int len = pathHead->text.afterLast - pathHead->text.first;
-                memcpy(path, pathHead->text.first, len);
-                path += len;
-            }
-            pathHead = pathHead->next;
-        } while (pathHead);
-
-        //path is always prefixed with / in case of relative url we move pointer further
-        if (!uri.absolutePath && !uri.hostText.first) {
-            p++;
-        }
-
-        data->Set(path_symbol, v8::String::New(p), attrib);
-        free(tmp);
+    if (uri.path && (opts & kPath)) {
+        data->Set(path_symbol, v8::String::New(uri.path), attrib);
     } else if (opts & kPath) {
         data->Set(path_symbol, v8::String::New("/"), attrib);
     }
 
-    uriFreeUriMembersA(&uri);
+    delete parser;
 
     return scope.Close(data);
 }
@@ -246,4 +230,7 @@ extern "C" void init (v8::Handle<v8::Object> target){
     NODE_DEFINE_CONSTANT(target, kFragment);
     NODE_DEFINE_CONSTANT(target, kPath);
     NODE_DEFINE_CONSTANT(target, kAll);
+
+    NODE_DEFINE_CONSTANT(target, eNgxParser);
+    NODE_DEFINE_CONSTANT(target, eRfcParser);
 }

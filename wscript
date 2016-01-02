@@ -24,12 +24,13 @@ def do_clean():
 def build(bld):
     if Options.options.buildUri == True and do_clean() == False:
         bld.exec_command("mkdir -p uriparser; cd ../deps/uriparser && ./autogen.sh && ./configure --with-pic --disable-test --disable-doc --disable-shared --prefix=%s && make clean install" % (bld.bdir + "/uriparser"))
+        bld.exec_command("cd ../deps/ngx_url_parser && make static-lib")
 
     obj = bld.new_task_gen("cxx", "shlib", "node_addon")
     obj.target = "uriparser"
     obj.source = "src/node-uriparser.cc"
-    obj.lib = ["uriparser"]
-    obj.includes = [bld.bdir + "/uriparser/include/uriparser"]
-    obj.libpath = [bld.bdir + "/uriparser/lib"]
+    obj.lib = ["uriparser", "ngx_url_parser"]
+    obj.includes = [bld.bdir + "/uriparser/include/uriparser", "deps/ngx_url_parser/"]
+    obj.libpath = [bld.bdir + "/uriparser/lib", 'deps/ngx_url_parser/lib/']
     obj.cxxflags = ["-g"]
     obj.cflags = ["-g"]
