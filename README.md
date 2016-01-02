@@ -4,7 +4,7 @@
 
 ##About:
 Bindings for RFC strict Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse.
-From version 2.0.0 you can use non-strict NGINX based parser(https://github.com/Aldor007/ngx_url_parser) which is event faster.
+From version 2.0.0 you can use non-strict NGINX based parser (https://github.com/Aldor007/ngx_url_parser).
 
 ##How to build/install:
 ```
