@@ -35,9 +35,9 @@ describe("uriparser - exceptions", function () {
         }).toThrow();
     });
 
-    it("wrong url given", function () {
+    it('1.txt?test1=okok', function () {
         expect(function () {
-            uriparser.parse("http://www.dreamlab.pl/a[]=1");
+            uriparser.parse('1.txt?test1=okok');
         }).toThrow();
     });
 });

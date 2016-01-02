@@ -3,30 +3,30 @@
         {
             "target_name": "uriparser",
             "dependencies": [
-                "liburiparser"
+                "libngx_url_parser"
             ],
             "sources": [
                 "src/node-uriparser.cc"
             ],
             "include_dirs": [
-                "<(module_root_dir)/build/uriparser/include/uriparser"
+                "<(module_root_dir)/deps/ngx_url_parser"
             ],
             "cflags": [
                 "-g"
             ],
             "libraries": [
-                "<(module_root_dir)/build/uriparser/lib/liburiparser.a"
+                "<(module_root_dir)/deps/ngx_url_parser/lib/libngx_url_parser.a"
             ]
         },
         {
-            "target_name": "liburiparser",
+            "target_name": "libngx_url_parser",
             "type": "none",
             "actions": [
                 {
                     "action_name": "build",
                     "inputs": [""],
                     "outputs": [""],
-                    "action": ["sh", "build_uriparser.sh"]
+                    "action": ["sh", "build_ngx_url_parser.sh"]
                 }
             ]
         },

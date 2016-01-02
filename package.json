@@ -1,6 +1,6 @@
 {
     "name": "uriparser",
-    "version": "1.3.4",
+    "version": "2.0.0",
     "description": "Fastest uriparser, written in C",
     "keywords": ["uriparser", "uri", "parser", "url"],
     "author": "Jakub Lekstan <kuebzky@gmail.com>",
