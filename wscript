@@ -18,7 +18,7 @@ def do_clean():
     for arg in sys.argv:
         if arg == 'clean':
             return True
-        
+
     return False
 
 def build(bld):
@@ -31,6 +31,6 @@ def build(bld):
     obj.source = "src/node-uriparser.cc"
     obj.lib = ["uriparser", "ngx_url_parser"]
     obj.includes = [bld.bdir + "/uriparser/include/uriparser", "deps/ngx_url_parser/"]
-    obj.libpath = [bld.bdir + "/uriparser/lib", 'deps/ngx_url_parser/lib/']
+    obj.libpath = [bld.bdir + "/uriparser/lib", '../deps/ngx_url_parser/lib']
     obj.cxxflags = ["-g"]
     obj.cflags = ["-g"]
