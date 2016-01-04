@@ -26,6 +26,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <vector>
 #include "parser.hpp"
 
 #define BRACKETS "[]"
@@ -104,11 +105,11 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         data->Set(protocol_symbol, v8::String::New(std::strcat(uri.schema, ":")), attrib);
     }
 
-    if (uri.userpass && (opts & kAuth)) {
+    if (uri.auth && (opts & kAuth)) {
         const char *delim = ":";
         char *authPtr, *authUser, *authPassword;
 
-        authUser = strtok_r(uri.userpass, delim, &authPtr);
+        authUser = strtok_r(uri.auth, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
 
         if (authUser != NULL && authPassword != NULL) {
@@ -137,7 +138,6 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = v8::Object::New();
 
-        query[uri.query.afterLast - uri.query.first] = '\0';
         queryParam = strtok_r(query, amp, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = v8::Object::New();
@@ -188,7 +188,6 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
             } else {
                 queryData->Set(key, v8::String::New((vals.front())));
             }
-            queryData->Set(key, arrVal);
         }
 
         //no need for empty object if the query string is going to be wrong

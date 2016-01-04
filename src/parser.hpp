@@ -1,6 +1,8 @@
 extern "C" {
     #include <ngx_url_parser.h>
 }
+
+#include <cstring>
 #include <Uri.h>
 
 // base structure for url properties
