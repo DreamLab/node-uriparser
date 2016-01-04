@@ -189,6 +189,16 @@ describe('uriparser - parse', function () {
         expect(url.queryArraySuffix).toEqual({a: '[]'});
     });
 
+    it('http://www.dreamlab.pl/test/test1/a[name]=1&a[name]=2', function () {
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a[name]=1&a[name]=2', null, uriparser.eNgxParser);
+
+        expect(Object.keys(url).length).toEqual(4);
+        expect(url.protocol).toEqual('http:');
+        expect(url.host).toEqual('www.dreamlab.pl');
+        expect(url.path).toEqual('/test/test1/');
+        expect(url.query).toEqual({'a[name]': ['1', '2']});
+    });
+
     it('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2', null, uriparser.eNgxParser);
 
@@ -199,4 +209,29 @@ describe('uriparser - parse', function () {
         expect(url.query).toEqual({b:'3', a: ['1', '2']});
     });
 
+    it('http://dreamlab.pl:/', function () {
+        var url = uriparser.parse('http://www.dreamlab.pl:/', null, uriparser.eNgxParser);
+
+        expect(Object.keys(url).length).toEqual(4);
+        expect(url.protocol).toEqual('http:');
+        expect(url.host).toEqual('www.dreamlab.pl');
+        expect(url.port).toEqual('');
+    });
+
+    it('http://dreamlab.pl:', function () {
+        var url = uriparser.parse('http://www.dreamlab.pl:', null, uriparser.eNgxParser);
+
+        expect(Object.keys(url).length).toEqual(4);
+        expect(url.protocol).toEqual('http:');
+        expect(url.host).toEqual('www.dreamlab.pl');
+        expect(url.port).toEqual('');
+    });
+
+    it('http:////', function () {
+        var url = uriparser.parse('http:////', null, uriparser.eNgxParser);
+
+        expect(Object.keys(url).length).toEqual(2);
+        expect(url.protocol).toEqual('http:');
+        expect(url.path).toEqual('//');
+    });
 });
