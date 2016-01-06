@@ -10,7 +10,7 @@
             ],
             "include_dirs": [
                 "<(module_root_dir)/build/uriparser/include/uriparser",
-                "<(module_root_dir)/deps/ngx_url_parser",
+                "<(module_root_dir)/build/ngx_url_parser/include/ngx_url_parser",
                 "<!(node -e \"require('nan')\")"
 
             ],
@@ -18,7 +18,7 @@
                 "-g"
             ],
             "libraries": [
-                "<(module_root_dir)/deps/ngx_url_parser/lib/libngx_url_parser.a",
+                "<(module_root_dir)/build/ngx_url_parser/lib/libngx_url_parser.a",
                 "<(module_root_dir)/build/uriparser/lib/liburiparser.a"
             ]
         },
