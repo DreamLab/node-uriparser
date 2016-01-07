@@ -4,7 +4,7 @@
 
 ##About:
 Bindings for RFC strict Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse.
-From version 2.0.0 you can use non-strict NGINX based parser (https://github.com/Aldor007/ngx_url_parser).
+From version 2.0.0 you can use non-strict NGINX based parser (https://github.com/DreamLab/ngx_url_parser).
 
 ##How to build/install:
 ```
@@ -28,7 +28,11 @@ There is only one simple function: ````parse(url[, options, engine]);````.
 
 Optional argument ````options```` lets you tell the library what your interests are, for example you can tell it to only give you the host.
 
-Available options: ````kProtocol````, ````kAuth````, ````kHost````, ````kPort````, ````kQuery````, ````kFragment````, ````kPath````, ````kAll````
+Available options: ````PROTOCOL````, ````AUTH````, ````HOST````, ````PORT````, ````QUERY````, ````FRAGMENT````, ````PATH````, ````ALL````
+
+Optional argument ````engine```` lets you tell the library what parser do you would like to use. Default is UriParser.
+
+Available engines: ```NGINX```, ```URIPARSER```.
 
 ##Example:
 ```js
