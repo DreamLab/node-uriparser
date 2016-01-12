@@ -26,7 +26,7 @@
 #include <cstring>
 #include <vector>
 #include <nan.h>
-#include "parser.hpp"
+#include "parsers.hpp"
 
 #define ENCODED_BRACKETS "%5B%5D"
 #define BRACKETS "[]"
@@ -43,27 +43,27 @@ enum parseOptions {
 };
 
 enum Engines {
-    eRfcParser = 1,
+    eUriParser = 1,
     eNgxParser
 };
 
-#define URI_PSYMBOL(name) Nan::New<v8::String>(name).ToLocalChecked()
+#define URI_LOCAL_STR(name) Nan::New<v8::String>(name).ToLocalChecked()
 
-static Nan::Persistent<v8::String> protocol_symbol(URI_PSYMBOL("protocol"));
-static Nan::Persistent<v8::String> auth_symbol(URI_PSYMBOL("auth"));
-static Nan::Persistent<v8::String> host_symbol(URI_PSYMBOL("host"));
-static Nan::Persistent<v8::String> port_symbol(URI_PSYMBOL("port"));
-static Nan::Persistent<v8::String> query_symbol(URI_PSYMBOL("query"));
-static Nan::Persistent<v8::String> queryArraySuffix_symbol(URI_PSYMBOL("queryArraySuffix"));
-static Nan::Persistent<v8::String> fragment_symbol(URI_PSYMBOL("fragment"));
-static Nan::Persistent<v8::String> path_symbol(URI_PSYMBOL("path"));
-static Nan::Persistent<v8::String> user_symbol(URI_PSYMBOL("user"));
-static Nan::Persistent<v8::String> password_symbol(URI_PSYMBOL("password"));
+static Nan::Persistent<v8::String> protocol_symbol(URI_LOCAL_STR("protocol"));
+static Nan::Persistent<v8::String> auth_symbol(URI_LOCAL_STR("auth"));
+static Nan::Persistent<v8::String> host_symbol(URI_LOCAL_STR("host"));
+static Nan::Persistent<v8::String> port_symbol(URI_LOCAL_STR("port"));
+static Nan::Persistent<v8::String> query_symbol(URI_LOCAL_STR("query"));
+static Nan::Persistent<v8::String> queryArraySuffix_symbol(URI_LOCAL_STR("queryArraySuffix"));
+static Nan::Persistent<v8::String> fragment_symbol(URI_LOCAL_STR("fragment"));
+static Nan::Persistent<v8::String> path_symbol(URI_LOCAL_STR("path"));
+static Nan::Persistent<v8::String> user_symbol(URI_LOCAL_STR("user"));
+static Nan::Persistent<v8::String> password_symbol(URI_LOCAL_STR("password"));
 
 
 NAN_METHOD(parse) {
     parseOptions opts = kAll;
-    Engines engine = eRfcParser;
+    Engines engine = eUriParser;
 
     if (info.Length() == 0 || !info[0]->IsString()) {
         return Nan::ThrowError("First argument has to be string");
@@ -89,11 +89,10 @@ NAN_METHOD(parse) {
 
     Url uri;
     Parser *parser;
-
     if (engine == eNgxParser) {
         parser = new NgxParser(*url);
     } else {
-        parser = new RfcParser(*url);
+        parser = new UriParser(*url);
     }
 
     if (parser->status != Parser::OK) {
@@ -102,38 +101,47 @@ NAN_METHOD(parse) {
     }
     uri = parser->url;
 
-    if (uri.schema && (opts & kProtocol)) {
-        data->ForceSet(Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(std::strcat(uri.schema, ":")).ToLocalChecked(), attrib);
+    if (uri.scheme.start && (opts & kProtocol)) {
+        // +1 becasue we need ":" in scheme/protocol
+        data->ForceSet(Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(uri.scheme.start, uri.scheme.len + 1).ToLocalChecked(), attrib);
     }
 
-    if (uri.auth && (opts & kAuth)) {
+    if (uri.auth.start && (opts & kAuth)) {
         const char *delim = ":";
         char *authPtr, *authUser, *authPassword;
 
-        authUser = strtok_r(uri.auth, delim, &authPtr);
+        char * auth = new char[uri.auth.len + 1];
+        std::strncpy(auth, uri.auth.start, uri.auth.len);
+
+        authUser = strtok_r(auth, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
 
         if (authUser != NULL && authPassword != NULL) {
             v8::Local<v8::Object> authData = Nan::New<v8::Object>();
-            authData->ForceSet(Nan::New(user_symbol), Nan::New<v8::String>(authUser).ToLocalChecked(), attrib);
-            authData->ForceSet(Nan::New(password_symbol), Nan::New<v8::String>(authPassword).ToLocalChecked(), attrib);
+            authData->ForceSet(Nan::New(user_symbol), URI_LOCAL_STR(authUser), attrib);
+            authData->ForceSet(Nan::New(password_symbol), URI_LOCAL_STR(authPassword), attrib);
 
             data->ForceSet(Nan::New(auth_symbol), authData, attrib);
         }
+
+        delete[] auth;
     }
 
-    if (uri.host && (opts & kHost)) {
-        data->ForceSet(Nan::New(host_symbol), Nan::New<v8::String>(uri.host).ToLocalChecked(), attrib);
+    if (uri.host.start && (opts & kHost)) {
+        data->ForceSet(Nan::New(host_symbol), Nan::New<v8::String>(uri.host.start, uri.host.len).ToLocalChecked(), attrib);
     }
 
-    if (uri.port && (opts & kPort)) {
-        data->ForceSet(Nan::New(port_symbol), Nan::New<v8::String>(uri.port).ToLocalChecked(), attrib);
+    if (uri.port.start && (opts & kPort)) {
+        data->ForceSet(Nan::New(port_symbol), Nan::New<v8::String>(uri.port.start, uri.port.len).ToLocalChecked(), attrib);
     }
 
-    if (uri.query && (opts & kQuery)) {
+    if (uri.query.start && (opts & kQuery)) {
         std::map<std::string, std::list<const char *> > paramsMap;
         std::vector<std::string> paramsOrder;
-        char *query = uri.query;
+        char *query = new char[uri.query.len + 1];
+        std::strncpy(query, uri.query.start, uri.query.len);
+        query[uri.query.len] = '\0';
+
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
@@ -155,14 +163,14 @@ NAN_METHOD(parse) {
                                  sizeof(ENCODED_BRACKETS) - 1)) {
                     arrayBrackets = true;
                     queryParamKey[len - (sizeof(ENCODED_BRACKETS) - 1)] = '\0';
-                    qsSuffix->Set(Nan::New<v8::String>(queryParamKey).ToLocalChecked(), Nan::New<v8::String>(ENCODED_BRACKETS).ToLocalChecked());
+                    qsSuffix->Set(URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(ENCODED_BRACKETS));
                 } else if (len > (sizeof(BRACKETS) - 1) &&
                         !strncmp(queryParamKey + len - (sizeof(BRACKETS) - 1),
                                  BRACKETS,
                                  sizeof(BRACKETS) - 1)) {
                     arrayBrackets = true;
                     queryParamKey[len - (sizeof(BRACKETS) - 1)] = '\0';
-                    qsSuffix->Set(Nan::New<v8::String>(queryParamKey).ToLocalChecked(), Nan::New<v8::String>(BRACKETS).ToLocalChecked());
+                    qsSuffix->Set(URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(BRACKETS));
                 }
 
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
@@ -176,7 +184,7 @@ NAN_METHOD(parse) {
 
 
         for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
-            v8::Local<v8::String> key = Nan::New<v8::String>(it->c_str()).ToLocalChecked();
+            v8::Local<v8::String> key = URI_LOCAL_STR(it->c_str());
             std::list<const char *> vals = paramsMap[*it];
             int arrSize = vals.size();
             if (arrSize > 1 || qsSuffix->Has(key)) {
@@ -184,12 +192,12 @@ NAN_METHOD(parse) {
 
                 int i = 0;
                 for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                    arrVal->Set(i, Nan::New<v8::String>(*it2).ToLocalChecked());
+                    arrVal->Set(i, URI_LOCAL_STR(*it2));
                     i++;
                 }
                 queryData->Set(key, arrVal);
             } else {
-                queryData->Set(key, Nan::New<v8::String>(vals.front()).ToLocalChecked());
+                queryData->Set(key, URI_LOCAL_STR(vals.front()));
             }
         }
 
@@ -200,16 +208,21 @@ NAN_METHOD(parse) {
                 data->ForceSet(Nan::New(queryArraySuffix_symbol), qsSuffix, attrib);
             }
         }
+
+        delete[] query;
     }
 
-    if (uri.fragment && (opts & kFragment)) {
-        data->ForceSet(Nan::New(fragment_symbol), Nan::New<v8::String>(uri.fragment).ToLocalChecked(), attrib);
+    if (uri.fragment.start && (opts & kFragment)) {
+        data->ForceSet(Nan::New(fragment_symbol), Nan::New<v8::String>(uri.fragment.start, uri.fragment.len).ToLocalChecked(), attrib);
     }
 
-    if (uri.path && (opts & kPath)) {
-        data->ForceSet(Nan::New(path_symbol), Nan::New<v8::String>(uri.path).ToLocalChecked(), attrib);
-    } else {
-        data->ForceSet(Nan::New(path_symbol), Nan::New<v8::String>("/").ToLocalChecked(), attrib);
+
+    if (opts & kPath) {
+        if (uri.path.start) {
+            data->ForceSet(Nan::New(path_symbol), Nan::New<v8::String>(uri.path.start, uri.path.len).ToLocalChecked(), attrib);
+        } else {
+            data->ForceSet(Nan::New(path_symbol), URI_LOCAL_STR("/"), attrib);
+        }
     }
 
     delete parser;
@@ -219,7 +232,7 @@ NAN_METHOD(parse) {
 
 void init (v8::Handle<v8::Object> target){
 
-
+    // Old properties
     Nan::SetMethod(target, "parse", parse);
     NODE_DEFINE_CONSTANT(target, kProtocol);
     NODE_DEFINE_CONSTANT(target, kAuth);
@@ -230,8 +243,20 @@ void init (v8::Handle<v8::Object> target){
     NODE_DEFINE_CONSTANT(target, kPath);
     NODE_DEFINE_CONSTANT(target, kAll);
 
-    NODE_DEFINE_CONSTANT(target, eNgxParser);
-    NODE_DEFINE_CONSTANT(target, eRfcParser);
+    v8::Handle<v8::Object> uri = Nan::New<v8::Object>();
+    uri->Set(URI_LOCAL_STR("PROTOCOL"), Nan::New<v8::Integer>(kProtocol));
+    uri->Set(URI_LOCAL_STR("AUTH"), Nan::New<v8::Integer>(kAuth));
+    uri->Set(URI_LOCAL_STR("HOST"), Nan::New<v8::Integer>(kHost));
+    uri->Set(URI_LOCAL_STR("PORT"), Nan::New<v8::Integer>(kPort));
+    uri->Set(URI_LOCAL_STR("QUERY"), Nan::New<v8::Integer>(kQuery));
+    uri->Set(URI_LOCAL_STR("FRAGMENT"), Nan::New<v8::Integer>(kFragment));
+    uri->Set(URI_LOCAL_STR("ALL"), Nan::New<v8::Integer>(kAll));
+    target->Set(URI_LOCAL_STR("Uri"), uri);
+
+    v8::Handle<v8::Object> engines = Nan::New<v8::Object>();
+    engines->Set(URI_LOCAL_STR("URIPARSER"), Nan::New<v8::Integer>(eUriParser));
+    engines->Set(URI_LOCAL_STR("NGINX"), Nan::New<v8::Integer>(eNgxParser));
+    target->Set(URI_LOCAL_STR("Engines"), engines);
 
 }
 
