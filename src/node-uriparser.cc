@@ -63,7 +63,7 @@ static v8::Persistent<v8::String> password_symbol = NODE_PSYMBOL("password");
 static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::HandleScope scope;
     parseOptions opts = kAll;
-    Engines engine = eUriParser;
+    Engines engine = eNgxParser;
 
     if (args.Length() == 0 || !args[0]->IsString()) {
         return v8::ThrowException(v8::Exception::TypeError(v8::String::New("First argument has to be string")));
@@ -89,10 +89,10 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     Url uri;
     Parser *parser;
 
-    if (engine == eNgxParser) {
-        parser = new NgxParser(*url);
-    } else {
+    if (engine == eUriParser) {
         parser = new UriParser(*url);
+    } else {
+        parser = new NgxParser(*url);
     }
 
     if (parser->status != Parser::OK) {
