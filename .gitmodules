@@ -3,4 +3,4 @@
 	url = git://git.code.sf.net/p/uriparser/git
 [submodule "deps/ngx_url_parser"]
 	path = deps/ngx_url_parser
-	url = https://github.com/Aldor007/ngx_url_parser
+	url = https://github.com/DreamLab/ngx_url_parser

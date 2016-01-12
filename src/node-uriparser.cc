@@ -22,15 +22,16 @@
 
 #include <v8.h>
 #include <node.h>
-#include <Uri.h>
 #include <map>
 #include <list>
 #include <string>
+#include <cstring>
 #include <vector>
-#include "parser.hpp"
 
-#define BRACKETS "[]"
+#include "parsers.hpp"
+
 #define ENCODED_BRACKETS "%5B%5D"
+#define BRACKETS "[]"
 
 enum parseOptions {
     kProtocol = 1,
@@ -44,7 +45,7 @@ enum parseOptions {
 };
 
 enum Engines {
-    eRfcParser = 1,
+    eUriParser = 1,
     eNgxParser
 };
 
@@ -61,9 +62,8 @@ static v8::Persistent<v8::String> password_symbol = NODE_PSYMBOL("password");
 
 static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::HandleScope scope;
-
     parseOptions opts = kAll;
-    Engines engine = eRfcParser;
+    Engines engine = eUriParser;
 
     if (args.Length() == 0 || !args[0]->IsString()) {
         return v8::ThrowException(v8::Exception::TypeError(v8::String::New("First argument has to be string")));
@@ -92,24 +92,27 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     if (engine == eNgxParser) {
         parser = new NgxParser(*url);
     } else {
-        parser = new RfcParser(*url);
+        parser = new UriParser(*url);
     }
 
     if (parser->status != Parser::OK) {
         return v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
     }
-
     uri = parser->url;
 
-    if (uri.schema && (opts & kProtocol)) {
-        data->Set(protocol_symbol, v8::String::New(std::strcat(uri.schema, ":")), attrib);
+    if (uri.scheme.start && (opts & kProtocol)) {
+        // +1 becasue we need ":" in scheme/protocol
+        data->Set(protocol_symbol, v8::String::New(uri.scheme.start, uri.scheme.len + 1), attrib);
     }
 
-    if (uri.auth && (opts & kAuth)) {
+    if (uri.auth.start && (opts & kAuth)) {
         const char *delim = ":";
         char *authPtr, *authUser, *authPassword;
 
-        authUser = strtok_r(uri.auth, delim, &authPtr);
+        char * auth = new char[uri.auth.len + 1];
+        std::strncpy(auth, uri.auth.start, uri.auth.len);
+
+        authUser = strtok_r(auth, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
 
         if (authUser != NULL && authPassword != NULL) {
@@ -119,20 +122,25 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
             data->Set(auth_symbol, authData, attrib);
         }
+
+        delete[] auth;
     }
 
-    if (uri.host && (opts & kHost)) {
-        data->Set(host_symbol, v8::String::New(uri.host), attrib);
+    if (uri.host.start && (opts & kHost)) {
+        data->Set(host_symbol, v8::String::New(uri.host.start, uri.host.len), attrib);
     }
 
-    if (uri.port && (opts & kPort)) {
-        data->Set(port_symbol, v8::String::New(uri.port), attrib);
+    if (uri.port.start && (opts & kPort)) {
+        data->Set(port_symbol, v8::String::New(uri.port.start, uri.port.len), attrib);
     }
 
-    if (uri.query && (opts & kQuery)) {
+    if (uri.query.start && (opts & kQuery)) {
         std::map<std::string, std::list<const char *> > paramsMap;
         std::vector<std::string> paramsOrder;
-        char *query = uri.query;
+        char *query = new char[uri.query.len + 1];
+        std::strncpy(query, uri.query.start, uri.query.len);
+        query[uri.query.len] = '\0';
+
         const char *amp = "&", *sum = "=";
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
@@ -163,6 +171,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                     queryParamKey[len - (sizeof(BRACKETS) - 1)] = '\0';
                     qsSuffix->Set(v8::String::New(queryParamKey), v8::String::New(BRACKETS));
                 }
+
                 queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
                 if (paramsMap.find(queryParamKey) == paramsMap.end()) {
                     paramsOrder.push_back(queryParamKey);
@@ -186,7 +195,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                 }
                 queryData->Set(key, arrVal);
             } else {
-                queryData->Set(key, v8::String::New((vals.front())));
+                queryData->Set(key, v8::String::New(vals.front()));
             }
         }
 
@@ -197,19 +206,20 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                 data->Set(query_arr_suffix, qsSuffix, attrib);
             }
         }
-        //parsing the path will be easier
-        query--;
-        *query = '\0';
+
+        delete[] query;
     }
 
-    if (uri.fragment && opts & kFragment) {
-        data->Set(fragment_symbol, v8::String::New(uri.fragment), attrib);
+    if (uri.fragment.start && (opts & kFragment)) {
+        data->Set(fragment_symbol, v8::String::New(uri.fragment.start, uri.fragment.len), attrib);
     }
 
-    if (uri.path && (opts & kPath)) {
-        data->Set(path_symbol, v8::String::New(uri.path), attrib);
-    } else if (opts & kPath) {
-        data->Set(path_symbol, v8::String::New("/"), attrib);
+    if (opts & kPath) {
+        if (uri.path.start) {
+            data->Set(path_symbol, v8::String::New(uri.path.start, uri.path.len), attrib);
+        } else {
+            data->Set(path_symbol, v8::String::New("/"), attrib);
+        }
     }
 
     delete parser;
@@ -217,10 +227,12 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     return scope.Close(data);
 }
 
+
 extern "C" void init (v8::Handle<v8::Object> target){
-    v8::HandleScope scope;
 
     NODE_SET_METHOD(target, "parse", parse);
+
+    // Old properties
     NODE_DEFINE_CONSTANT(target, kProtocol);
     NODE_DEFINE_CONSTANT(target, kAuth);
     NODE_DEFINE_CONSTANT(target, kHost);
@@ -230,6 +242,21 @@ extern "C" void init (v8::Handle<v8::Object> target){
     NODE_DEFINE_CONSTANT(target, kPath);
     NODE_DEFINE_CONSTANT(target, kAll);
 
-    NODE_DEFINE_CONSTANT(target, eNgxParser);
-    NODE_DEFINE_CONSTANT(target, eRfcParser);
+    v8::Handle<v8::Object> uri = v8::Object::New();
+    uri->Set(v8::String::New("PROTOCOL"), v8::Integer::New(kProtocol));
+    uri->Set(v8::String::New("AUTH"), v8::Integer::New(kAuth));
+    uri->Set(v8::String::New("HOST"), v8::Integer::New(kHost));
+    uri->Set(v8::String::New("PORT"), v8::Integer::New(kPort));
+    uri->Set(v8::String::New("QUERY"), v8::Integer::New(kQuery));
+    uri->Set(v8::String::New("FRAGMENT"), v8::Integer::New(kFragment));
+    uri->Set(v8::String::New("ALL"), v8::Integer::New(kAll));
+    target->Set(v8::String::New("Uri"), uri);
+
+    v8::Handle<v8::Object> engines = v8::Object::New();
+    engines->Set(v8::String::New("URIPARSER"), v8::Integer::New(eUriParser));
+    engines->Set(v8::String::New("NGINX"), v8::Integer::New(eNgxParser));
+    target->Set(v8::String::New("Engines"), engines);
+
 }
+
+NODE_MODULE(uriparser, init)
