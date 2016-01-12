@@ -23,9 +23,8 @@ def do_clean():
 
 def build(bld):
     if Options.options.buildUri == True and do_clean() == False:
-        bld.exec_command("mkdir -p uriparser; cd ../deps/uriparser && ./autogen.sh && ./configure --with-pic --disable-test --disable-doc --disable-shared --prefix=%s && make clean install" % (bld.bdir + "/uriparser"))
-        bld.exec_command("cd -")
         bld.exec_command("mkdir -p ngx_url_parser; cd ../deps/ngx_url_parser && ./autogen.sh && ./configure --with-pic  --disable-shared --prefix=%s && make clean install" %(bld.bdir + "/ngx_url_parser"))
+        bld.exec_command("mkdir -p uriparser; cd ../deps/uriparser && ./autogen.sh && ./configure --with-pic --disable-test --disable-doc --disable-shared --prefix=%s && make clean install" % (bld.bdir + "/uriparser"))
 
     obj = bld.new_task_gen("cxx", "shlib", "node_addon")
     obj.target = "uriparser"
