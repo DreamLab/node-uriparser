@@ -35,4 +35,9 @@ describe("uriparser - exceptions", function () {
         }).toThrow();
     });
 
+    it("incorrect url - no auth", function () {
+        expect(function () {
+            uriparser.parse("http://:www.dreamlab.pl");
+        }).toThrow();
+    });
 });

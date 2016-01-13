@@ -89,7 +89,7 @@ class NgxParser: public Parser {
             url.fragment.start = url_meta.fragment_start;
             url.fragment.len = url_meta.fragment_end - url_meta.fragment_start;
             url.port.start = url_meta.port_start;
-            url.port.len = url_meta.port_end - url_meta.port_end;
+            url.port.len = url_meta.port_end - url_meta.port_start;
             url.auth.start = url_meta.auth_start;
             url.auth.len  = url_meta.auth_end - url_meta.auth_start;
         }
