@@ -112,6 +112,7 @@ NAN_METHOD(parse) {
 
         char * auth = new char[uri.auth.len + 1];
         std::strncpy(auth, uri.auth.start, uri.auth.len);
+        auth[uri.auth.len] = '\0';
 
         authUser = strtok_r(auth, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
