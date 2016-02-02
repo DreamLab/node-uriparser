@@ -42,14 +42,14 @@
             ],
             "actions": [
                 {
-                    "action_name": "symlink",
+                    "action_name": "copy",
                     "inputs": [
                         "<@(PRODUCT_DIR)/uriparser.node"
                     ],
                     "outputs": [
                         "<(module_root_dir)/bin/uriparser.node"
                     ],
-                    "action": ["ln", "-s", "<@(PRODUCT_DIR)/uriparser.node", "<(module_root_dir)/bin/uriparser.node"]
+                    "action": ["cp", "<@(PRODUCT_DIR)/uriparser.node", "<(module_root_dir)/bin/uriparser.node"]
                 }
             ]
         }
