@@ -27,25 +27,25 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://dreamlab.pl');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('dreamlab.pl');
-        expect(url.path).toEqual('/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('dreamlab.pl');
+        expect(url.path).toBe('/');
     });
 
     it('http://dreamlab.pl/', function () {
         var url = uriparser.parse('http://dreamlab.pl/');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('dreamlab.pl');
-        expect(url.path).toEqual('/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('dreamlab.pl');
+        expect(url.path).toBe('/');
     });
 
     it('1.txt?test1=okok', function () {
         var url = uriparser.parse('1.txt?test1=okok');
 
         expect(Object.keys(url).length).toEqual(2);
-        expect(url.path).toEqual('1.txt');
+        expect(url.path).toBe('1.txt');
         expect(url.query).toEqual({'test1': 'okok'});
     });
 
@@ -53,7 +53,7 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('/1.txt?test1=okok');
 
         expect(Object.keys(url).length).toEqual(2);
-        expect(url.path).toEqual('/1.txt');
+        expect(url.path).toBe('/1.txt');
         expect(url.query).toEqual({'test1': 'okok'});
     });
 
@@ -61,9 +61,9 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://dreamlab.pl/X?X');
 
         expect(Object.keys(url).length).toEqual(4);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('dreamlab.pl');
-        expect(url.path).toEqual('/X');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('dreamlab.pl');
+        expect(url.path).toBe('/X');
         expect(url.query).toEqual({'X': ""});
     });
 
@@ -71,54 +71,54 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://dreamlab.pl/X');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('dreamlab.pl');
-        expect(url.path).toEqual('/X');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('dreamlab.pl');
+        expect(url.path).toBe('/X');
     });
 
     it('http://dreamlab.pl/hejka/', function () {
         var url = uriparser.parse('http://dreamlab.pl/hejka/');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('dreamlab.pl');
-        expect(url.path).toEqual('/hejka/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('dreamlab.pl');
+        expect(url.path).toBe('/hejka/');
     });
 
     it('http://dreamlab.pl/hejka/?hejka=123', function () {
         var url = uriparser.parse('http://dreamlab.pl/hejka/?hejka=123');
 
         expect(Object.keys(url).length).toEqual(4);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('dreamlab.pl');
-        expect(url.path).toEqual('/hejka/');
-        expect(url.query).toEqual({'hejka': '123'})
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('dreamlab.pl');
+        expect(url.path).toBe('/hejka/');
+        expect(url.query).toEqual({'hejka': "123"})
     });
     it('http://:@www.dreamlab.pl/?', function () {
         var url = uriparser.parse('http://:@www.dreamlab.pl/?');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/');
     });
 
     it('http://user:@www.dreamlab.pl/?', function () {
         var url = uriparser.parse('http://user:@www.dreamlab.pl/?');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/');
     });
 
     it('http://:pw@www.dreamlab.pl/?', function () {
         var url = uriparser.parse('http://:pw@www.dreamlab.pl/?');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/');
     });
 
     it('http://user:pw@www.dreamlab.pl/?', function () {
@@ -135,35 +135,35 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/?=&=');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/');
     });
 
     it('http://www.dreamlab.pl//test/123', function () {
         var url = uriparser.parse('http://www.dreamlab.pl//test/123');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('//test/123');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('//test/123');
     });
 
     it('http://www.dreamlab.pl/test//123', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/test//123');
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/test//123');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test//123');
     });
 
     it('http://www.dreamlab.pl/test/?a=1&b=1&a=2&c=3', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/test/?a=1&b=4&a=2&c=3');
 
         expect(Object.keys(url).length).toEqual(4);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
         expect(url.query).toEqual({a: ['1', '2'], b: '4', c: '3'});
     });
 
@@ -171,8 +171,8 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/test/?b=1&c=3&a%5B%5D=1&a%5B%5D=2');
 
         expect(Object.keys(url).length).toEqual(5);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
         expect(url.query).toEqual({b: '1', c: '3', a: ['1', '2']});
         expect(url.queryArraySuffix).toEqual({a: '%5B%5D'});
     });
@@ -182,9 +182,9 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a[]=1&a[]=2', null, uriparser.Engines.NGINX);
 
         expect(Object.keys(url).length).toEqual(5);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/test/test1/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({a: ['1', '2']});
         expect(url.queryArraySuffix).toEqual({a: '[]'});
     });
@@ -193,9 +193,9 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a[name]=1&a[name]=2', null, uriparser.Engines.NGINX);
 
         expect(Object.keys(url).length).toEqual(4);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/test/test1/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({'a[name]': ['1', '2']});
     });
 
@@ -203,21 +203,21 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://user:pw@www.dreamlab.pl/test/test1/?a[name]=1&a[name]=2#fragment', null, uriparser.Engines.NGINX);
 
         expect(Object.keys(url).length).toEqual(6);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/test/test1/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({'a[name]': ['1', '2']});
         expect(url.auth).toEqual({'user': 'user', 'password': 'pw'});
-        expect(url.fragment).toEqual('fragment');
+        expect(url.fragment).toBe('fragment');
     });
 
     it('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2', function () {
         var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2', null, uriparser.Engines.NGINX);
 
         expect(Object.keys(url).length).toEqual(4);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.path).toEqual('/test/test1/');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({b:'3', a: ['1', '2']});
     });
 
@@ -225,32 +225,85 @@ describe('uriparser - parse', function () {
         var url = uriparser.parse('http://www.dreamlab.pl:/', null, uriparser.Engines.NGINX);
 
         expect(Object.keys(url).length).toEqual(4);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.port).toEqual('');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.port).toBe('');
     });
 
     it('http://dreamlab.pl:/ - only protocol', function () {
         var url = uriparser.parse('http://www.dreamlab.pl:/', uriparser.Uri.PROTOCOL, uriparser.Engines.NGINX);
         expect(Object.keys(url).length).toEqual(1);
-        expect(url.protocol).toEqual('http:');
+        expect(url.protocol).toBe('http:');
     });
 
     it('http://dreamlab.pl:', function () {
         var url = uriparser.parse('http://www.dreamlab.pl:', null, uriparser.Engines.NGINX);
 
         expect(Object.keys(url).length).toEqual(4);
-        expect(url.protocol).toEqual('http:');
-        expect(url.host).toEqual('www.dreamlab.pl');
-        expect(url.port).toEqual('');
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.port).toBe('');
+    });
+
+    it('http://dreamlab.pl:80/path/index.html?arg1=5', function () {
+        var url = uriparser.parse('http://www.dreamlab.pl:80/path/index.html?arg1=5', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(5);
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.port).toBe('80');
+        expect(url.path).toBe('/path/index.html');
+        expect(url.query).toEqual({arg1: '5'});
     });
 
     it('http:////', function () {
         var url = uriparser.parse('http:////', null, uriparser.Engines.NGINX);
 
         expect(Object.keys(url).length).toEqual(3);
-        expect(url.protocol).toEqual('http:');
-        expect(url.path).toEqual('//');
-        expect(url.host).toEqual('');
+        expect(url.protocol).toBe('http:');
+        expect(url.path).toBe('//');
+        expect(url.host).toBe('');
+    });
+
+    it('somestring', function () {
+        var url = uriparser.parse('somestring', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(1);
+        expect(url.path).toBe('somestring');
+    });
+
+    it('#fragmen/t', function () {
+        var url = uriparser.parse('#fragmen/t', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(2);
+        expect(url.fragment).toBe('fragmen/t');
+    });
+
+    it('?query', function () {
+        var url = uriparser.parse('?query', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(2);
+        expect(url.query).toEqual({'query': ''});
+    });
+
+    it('https://user_usr:password@www.dreamlab.pl:81/path/index.html?arg1=1&arg2=2', function () {
+        var url = uriparser.parse('https://user_usr:password@www.dreamlab.pl:81/path/index.html?arg1=1&arg2=2', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(6);
+        expect(url.protocol).toBe('https:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.port).toBe('81');
+        expect(url.path).toBe('/path/index.html');
+        expect(url.auth).toEqual({user: 'user_usr', password: 'password'});
+        expect(url.query).toEqual({arg1: '1', arg2: '2'});
+    });
+
+    it('https://zs.usernanme_cms.test.api.pl/', function () {
+        var url = uriparser.parse('https://zs.usernanme_cms.test.api.pl/', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(3);
+        expect(url.protocol).toBe('https:');
+        expect(url.host).toBe('zs.usernanme_cms.test.api.pl');
+        expect(url.path).toBe('/');
     });
 });

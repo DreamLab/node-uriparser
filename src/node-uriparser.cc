@@ -63,7 +63,7 @@ static Nan::Persistent<v8::String> password_symbol(URI_LOCAL_STR("password"));
 
 NAN_METHOD(parse) {
     parseOptions opts = kAll;
-    Engines engine = eUriParser;
+    Engines engine = eNgxParser;
 
     if (info.Length() == 0 || !info[0]->IsString()) {
         return Nan::ThrowError("First argument has to be string");
@@ -89,10 +89,10 @@ NAN_METHOD(parse) {
 
     Url uri;
     Parser *parser;
-    if (engine == eNgxParser) {
-        parser = new NgxParser(*url);
-    } else {
+    if (engine == eUriParser) {
         parser = new UriParser(*url);
+    } else {
+        parser = new NgxParser(*url);
     }
 
     if (parser->status != Parser::OK) {
@@ -112,6 +112,7 @@ NAN_METHOD(parse) {
 
         char * auth = new char[uri.auth.len + 1];
         std::strncpy(auth, uri.auth.start, uri.auth.len);
+        auth[uri.auth.len] = '\0';
 
         authUser = strtok_r(auth, delim, &authPtr);
         authPassword = strtok_r(NULL, delim, &authPtr);
