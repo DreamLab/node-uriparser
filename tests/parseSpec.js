@@ -305,4 +305,23 @@ describe('uriparser - parse', function () {
         expect(url.path).toBe('/');
     });
 
+    it('http://www.dreamlab.pl/test/test1/?a=3;b=1;a=2', function () {
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a=3;b=1;a=2', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(4);
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test/test1/');
+        expect(url.query).toEqual({ a: ['3', '2'], b: '1'});
+    });
+
+    it('http://www.dreamlab.pl/test/test1/?a', function () {
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(4);
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test/test1/');
+        expect(url.query).toEqual({ a: ''});
+    });
 });
