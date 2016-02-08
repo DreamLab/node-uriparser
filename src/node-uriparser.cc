@@ -143,12 +143,23 @@ NAN_METHOD(parse) {
         std::strncpy(query, uri.query.start, uri.query.len);
         query[uri.query.len] = '\0';
 
-        const char *amp = "&", *sum = "=";
+        const char *amp = "&", *sum = "=", *semicolon = ";", *delimeter = amp;
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = Nan::New<v8::Object>();
 
-        queryParam = strtok_r(query, amp, &queryParamPairPtr);
+        // find qs delimeter & or ;
+        for (size_t i = 0; i < uri.query.len; ++i) {
+            if (query[i] == *amp) {
+                delimeter = amp;
+                break;
+            } else if (query[i] == *semicolon) {
+                delimeter = semicolon;
+                break;
+            }
+        }
+
+        queryParam = strtok_r(query, delimeter, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = Nan::New<v8::Object>();
         bool arrayBrackets = false;
@@ -180,7 +191,7 @@ NAN_METHOD(parse) {
                 }
                 paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
             }
-            queryParam = strtok_r(NULL, amp, &queryParamPairPtr);
+            queryParam = strtok_r(NULL, delimeter, &queryParamPairPtr);
         }
 
 
