@@ -55,6 +55,7 @@ static v8::Persistent<v8::String> host_symbol = NODE_PSYMBOL("host");
 static v8::Persistent<v8::String> port_symbol = NODE_PSYMBOL("port");
 static v8::Persistent<v8::String> query_symbol = NODE_PSYMBOL("query");
 static v8::Persistent<v8::String> query_arr_suffix = NODE_PSYMBOL("queryArraySuffix");
+static v8::Persistent<v8::String> query_delimeter = NODE_PSYMBOL("queryDelimeter");
 static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
 static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
 static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
@@ -157,6 +158,8 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                 break;
             }
         }
+
+        data->Set(query_delimeter, v8::String::New(delimeter), attrib);
 
         queryParam = strtok_r(query, delimeter, &queryParamPairPtr);
 

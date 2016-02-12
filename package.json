@@ -1,9 +1,12 @@
 {
     "name": "uriparser",
-    "version": "1.2.12",
+    "version": "1.2.13",
     "description": "Fastest uriparser, written in C",
     "keywords": ["uriparser", "uri", "parser", "url"],
-    "author": "Jakub Lekstan <kuebzky@gmail.com>",
+    "contributors": [
+        "Jakub Lekstan <kuebzky@gmail.com>",
+        "Marcin Kaciuba <marcin.kaciuba@gmail.com>"
+    ],
     "dependencies": {},
     "main": "./lib/bindings.js",
     "repository": {
