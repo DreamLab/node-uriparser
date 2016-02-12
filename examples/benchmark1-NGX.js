@@ -23,6 +23,6 @@
 var uriparser = require('../bin/uriparser'), url = "http://10.177.51.76:1337//example/dir/hi", matches;
 
 for (var i = 0; i < 2000000; i++) {
-    matches = uriparser.parse(url, uriparser.Uri.PROTOCOL, uriparser.Engines.NGINX);
+    matches = uriparser.parse(url, null, uriparser.Engines.NGINX);
 }
 
