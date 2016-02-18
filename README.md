@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/DreamLab/node-uriparser.svg?branch=master)](https://travis-ci.org/DreamLab/node-uriparser)
+[![Build Status](https://travis-ci.org/DreamLab/node-uriparser.svg?branch=master)](https://travis-ci.org/DreamLab/node-uriparser)[![npm version](https://badge.fury.io/js/uriparser.svg)](https://badge.fury.io/js/uriparser)
 
 #node-uriparser
 
