@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/DreamLab/node-uriparser.svg?branch=master)](https://travis-ci.org/DreamLab/node-uriparser) [![npm version](https://badge.fury.io/js/uriparser.svg)](https://badge.fury.io/js/uriparser)
+[![Build Status](https://travis-ci.org/DreamLab/node-uriparser.svg?branch=master)](https://travis-ci.org/DreamLab/node-uriparser) [![npm version](https://badge.fury.io/js/uriparser.svg)](https://badge.fury.io/js/uriparser) [![downloads badge](http://img.shields.io/npm/dm/uriparser.svg)](https://www.npmjs.org/package/uriparser)
+
 
 #node-uriparser
 
