@@ -343,4 +343,14 @@ describe('uriparser - parse', function () {
         expect(url.query).toEqual({ a: ''});
         expect(url.queryDelimeter).toBe('&');
     });
+
+    it('//www.dreamlab.pl/test/test1/?a', function () {
+        var url = uriparser.parse('//www.dreamlab.pl/test/test1/?a', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(4);
+        expect(url.host).toBe('www.dreamlab.pl');
+        expect(url.path).toBe('/test/test1/');
+        expect(url.query).toEqual({ a: ''});
+        expect(url.queryDelimeter).toBe('&');
+    });
 });
