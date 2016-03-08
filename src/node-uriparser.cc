@@ -55,6 +55,7 @@ static Nan::Persistent<v8::String> host_symbol(URI_LOCAL_STR("host"));
 static Nan::Persistent<v8::String> port_symbol(URI_LOCAL_STR("port"));
 static Nan::Persistent<v8::String> query_symbol(URI_LOCAL_STR("query"));
 static Nan::Persistent<v8::String> queryArraySuffix_symbol(URI_LOCAL_STR("queryArraySuffix"));
+static Nan::Persistent<v8::String> queryDelimeter_symbol(URI_LOCAL_STR("queryDelimeter"));
 static Nan::Persistent<v8::String> fragment_symbol(URI_LOCAL_STR("fragment"));
 static Nan::Persistent<v8::String> path_symbol(URI_LOCAL_STR("path"));
 static Nan::Persistent<v8::String> user_symbol(URI_LOCAL_STR("user"));
@@ -159,6 +160,7 @@ NAN_METHOD(parse) {
             }
         }
 
+        data->ForceSet(Nan::New(queryDelimeter_symbol), Nan::New<v8::String>(delimeter).ToLocalChecked(), attrib);
         queryParam = strtok_r(query, delimeter, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = Nan::New<v8::Object>();
