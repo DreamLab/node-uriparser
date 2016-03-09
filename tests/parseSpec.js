@@ -46,7 +46,7 @@ describe('uriparser - parse', function () {
         expect(Object.keys(url).length).toEqual(3);
         expect(url.path).toBe('1.txt');
         expect(url.query).toEqual({'test1': 'okok'});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('/1.txt?test1=okok', function () {
@@ -55,7 +55,7 @@ describe('uriparser - parse', function () {
         expect(Object.keys(url).length).toEqual(3);
         expect(url.path).toBe('/1.txt');
         expect(url.query).toEqual({'test1': 'okok'});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://dreamlab.pl/X?X', function () {
@@ -66,7 +66,7 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('dreamlab.pl');
         expect(url.path).toBe('/X');
         expect(url.query).toEqual({'X': ""});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://dreamlab.pl/X', function () {
@@ -95,7 +95,7 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('dreamlab.pl');
         expect(url.path).toBe('/hejka/');
         expect(url.query).toEqual({'hejka': "123"})
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
     it('http://:@www.dreamlab.pl/?', function () {
         var url = uriparser.parse('http://:@www.dreamlab.pl/?');
@@ -104,7 +104,7 @@ describe('uriparser - parse', function () {
         expect(url.protocol).toBe('http:');
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/');
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://user:@www.dreamlab.pl/?', function () {
@@ -114,7 +114,7 @@ describe('uriparser - parse', function () {
         expect(url.protocol).toBe('http:');
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/');
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://:pw@www.dreamlab.pl/?', function () {
@@ -134,7 +134,7 @@ describe('uriparser - parse', function () {
         expect(url.auth).toEqual({'user': "user", "password": "pw"});
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/');
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://www.dreamlab.pl/?=&=', function () {
@@ -144,7 +144,7 @@ describe('uriparser - parse', function () {
         expect(url.protocol).toBe('http:');
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/');
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://www.dreamlab.pl//test/123', function () {
@@ -172,7 +172,7 @@ describe('uriparser - parse', function () {
         expect(url.protocol).toBe('http:');
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.query).toEqual({a: ['1', '2'], b: '4', c: '3'});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://www.dreamlab.pl/test/?b=1&c=3&a%5B%5D=1&a%5B%5D=1', function () {
@@ -183,7 +183,7 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.query).toEqual({b: '1', c: '3', a: ['1', '2']});
         expect(url.queryArraySuffix).toEqual({a: '%5B%5D'});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://www.dreamlab.pl/test/test1/a[]=1&a[]=2', function () {
@@ -195,7 +195,7 @@ describe('uriparser - parse', function () {
         expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({a: ['1', '2']});
         expect(url.queryArraySuffix).toEqual({a: '[]'});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://www.dreamlab.pl/test/test1/a[name]=1&a[name]=2', function () {
@@ -206,7 +206,7 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({'a[name]': ['1', '2']});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://user:pw@www.dreamlab.pl/test/test1/a[name]=1&a[name]=2#fragment', function () {
@@ -219,7 +219,7 @@ describe('uriparser - parse', function () {
         expect(url.query).toEqual({'a[name]': ['1', '2']});
         expect(url.auth).toEqual({'user': 'user', 'password': 'pw'});
         expect(url.fragment).toBe('fragment');
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2', function () {
@@ -230,7 +230,7 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({b:'3', a: ['1', '2']});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http://dreamlab.pl:/', function () {
@@ -266,7 +266,7 @@ describe('uriparser - parse', function () {
         expect(url.port).toBe('80');
         expect(url.path).toBe('/path/index.html');
         expect(url.query).toEqual({arg1: '5'});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('http:////', function () {
@@ -297,7 +297,7 @@ describe('uriparser - parse', function () {
 
         expect(Object.keys(url).length).toEqual(3);
         expect(url.query).toEqual({'query': ''});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('https://user_usr:password@www.dreamlab.pl:81/path/index.html?arg1=1&arg2=2', function () {
@@ -310,7 +310,7 @@ describe('uriparser - parse', function () {
         expect(url.path).toBe('/path/index.html');
         expect(url.auth).toEqual({user: 'user_usr', password: 'password'});
         expect(url.query).toEqual({arg1: '1', arg2: '2'});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('https://zs.usernanme_cms.test.api.pl/', function () {
@@ -330,7 +330,7 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({ a: ['3', '2'], b: '1'});
-        expect(url.queryDelimeter).toBe(';');
+        expect(url.querySeparator).toBe(';');
     });
 
     it('http://www.dreamlab.pl/test/test1/?a', function () {
@@ -341,7 +341,7 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({ a: ''});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 
     it('//www.dreamlab.pl/test/test1/?a', function () {
@@ -351,6 +351,6 @@ describe('uriparser - parse', function () {
         expect(url.host).toBe('www.dreamlab.pl');
         expect(url.path).toBe('/test/test1/');
         expect(url.query).toEqual({ a: ''});
-        expect(url.queryDelimeter).toBe('&');
+        expect(url.querySeparator).toBe('&');
     });
 });
