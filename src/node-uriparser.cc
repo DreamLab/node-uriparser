@@ -55,6 +55,7 @@ static v8::Persistent<v8::String> host_symbol = NODE_PSYMBOL("host");
 static v8::Persistent<v8::String> port_symbol = NODE_PSYMBOL("port");
 static v8::Persistent<v8::String> query_symbol = NODE_PSYMBOL("query");
 static v8::Persistent<v8::String> query_arr_suffix = NODE_PSYMBOL("queryArraySuffix");
+static v8::Persistent<v8::String> query_separator = NODE_PSYMBOL("querySeparator");
 static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
 static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
 static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
@@ -142,7 +143,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         std::strncpy(query, uri.query.start, uri.query.len);
         query[uri.query.len] = '\0';
 
-        const char *amp = "&", *sum = "=", *semicolon = ";", *delimeter = amp;
+        const char *amp = "&", *sum = "=", *semicolon = ";", *separator = amp;
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = v8::Object::New();
@@ -150,15 +151,17 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         // find qs delimeter & or ;
         for (size_t i = 0; i < uri.query.len; ++i) {
             if (query[i] == *amp) {
-                delimeter = amp;
+                separator = amp;
                 break;
             } else if (query[i] == *semicolon) {
-                delimeter = semicolon;
+                separator = semicolon;
                 break;
             }
         }
 
-        queryParam = strtok_r(query, delimeter, &queryParamPairPtr);
+        data->Set(query_separator, v8::String::New(separator), attrib);
+
+        queryParam = strtok_r(query, separator, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = v8::Object::New();
         bool arrayBrackets = false;
@@ -190,7 +193,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                 }
                 paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
             }
-            queryParam = strtok_r(NULL, delimeter, &queryParamPairPtr);
+            queryParam = strtok_r(NULL, separator, &queryParamPairPtr);
         }
 
         for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
