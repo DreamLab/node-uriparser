@@ -1,9 +1,12 @@
 {
     "name": "uriparser",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Fastest uriparser, written in C",
     "keywords": ["uriparser", "uri", "parser", "url"],
-    "author": "Jakub Lekstan <kuebzky@gmail.com>",
+    "contributors": [
+        "Jakub Lekstan <kuebzky@gmail.com>",
+        "Marcin Kaciuba <marcin.kaciuba@gmail.com>"
+    ],
     "dependencies": {
         "nan": "2.1.0"
     },

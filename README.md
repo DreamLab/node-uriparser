@@ -44,7 +44,7 @@ var u = uriparser.parse('http://github.com');
 console.log(u);
 { protocol: 'http:', host: 'github.com', path: '/' }
 
-var q = uriparser.parse('https://github.com', uriparser.Uri.PROTOCOL, uriparser.Engine.NGINX);
+var q = uriparser.parse('https://github.com', uriparser.Uri.PROTOCOL, uriparser.Engines.NGINX);
 console.log(q);
 { protocol: 'https:' }
 ```

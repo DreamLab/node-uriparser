@@ -55,6 +55,7 @@ static Nan::Persistent<v8::String> host_symbol(URI_LOCAL_STR("host"));
 static Nan::Persistent<v8::String> port_symbol(URI_LOCAL_STR("port"));
 static Nan::Persistent<v8::String> query_symbol(URI_LOCAL_STR("query"));
 static Nan::Persistent<v8::String> queryArraySuffix_symbol(URI_LOCAL_STR("queryArraySuffix"));
+static Nan::Persistent<v8::String> querySeparator_symbol(URI_LOCAL_STR("querySeparator"));
 static Nan::Persistent<v8::String> fragment_symbol(URI_LOCAL_STR("fragment"));
 static Nan::Persistent<v8::String> path_symbol(URI_LOCAL_STR("path"));
 static Nan::Persistent<v8::String> user_symbol(URI_LOCAL_STR("user"));
@@ -143,23 +144,24 @@ NAN_METHOD(parse) {
         std::strncpy(query, uri.query.start, uri.query.len);
         query[uri.query.len] = '\0';
 
-        const char *amp = "&", *sum = "=", *semicolon = ";", *delimeter = amp;
+        const char *amp = "&", *sum = "=", *semicolon = ";", *separator = amp;
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = Nan::New<v8::Object>();
 
-        // find qs delimeter & or ;
+        // find qs separator & or ;
         for (size_t i = 0; i < uri.query.len; ++i) {
             if (query[i] == *amp) {
-                delimeter = amp;
+                separator = amp;
                 break;
             } else if (query[i] == *semicolon) {
-                delimeter = semicolon;
+                separator = semicolon;
                 break;
             }
         }
 
-        queryParam = strtok_r(query, delimeter, &queryParamPairPtr);
+        data->ForceSet(Nan::New(querySeparator_symbol), Nan::New<v8::String>(separator).ToLocalChecked(), attrib);
+        queryParam = strtok_r(query, separator, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = Nan::New<v8::Object>();
         bool arrayBrackets = false;
@@ -191,7 +193,7 @@ NAN_METHOD(parse) {
                 }
                 paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
             }
-            queryParam = strtok_r(NULL, delimeter, &queryParamPairPtr);
+            queryParam = strtok_r(NULL, separator, &queryParamPairPtr);
         }
 
 
