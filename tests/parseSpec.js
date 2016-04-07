@@ -353,4 +353,13 @@ describe('uriparser - parse', function () {
         expect(url.query).toEqual({ a: ''});
         expect(url.querySeparator).toBe('&');
     });
+
+    it('/?a', function () {
+        var url = uriparser.parse('/?a', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(3);
+        expect(url.path).toBe('/');
+        expect(url.query).toEqual({ a: ''});
+        expect(url.querySeparator).toBe('&');
+    });
 });
