@@ -362,4 +362,18 @@ describe('uriparser - parse', function () {
         expect(url.query).toEqual({ a: ''});
         expect(url.querySeparator).toBe('&');
     });
+
+    it('/.!@$%^&*()_-feed', function () {
+        var url = uriparser.parse('/.!@$%^&*()_-feed', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(1);
+        expect(url.path).toBe('/.!@$%^&*()_-feed');
+    });
+
+    it('.!@$%^&*()_-feed', function () {
+        var url = uriparser.parse('.!@$%^&*()_-feed', null, uriparser.Engines.NGINX);
+
+        expect(Object.keys(url).length).toEqual(1);
+        expect(url.path).toBe('.!@$%^&*()_-feed');
+    });
 });
