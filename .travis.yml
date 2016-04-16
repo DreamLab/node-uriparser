@@ -30,5 +30,5 @@ script:
 
 matrix:
     allow_failures:
-        - os: osx # node 0.8 fails on OS X
+        - node_js: "0.8" # node 0.8 fails on OS X
 
