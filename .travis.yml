@@ -23,6 +23,11 @@ addons:
             - autoconf
             - libtool
             - pkg-config
+
+before_install:
+    - touch ~/.npmrc
+
 script:
     - npm install -g jasmine-node
     - jasmine-node --verbose tests
+
