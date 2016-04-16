@@ -3,30 +3,34 @@
         {
             "target_name": "uriparser",
             "dependencies": [
-                "liburiparser"
+                "libparsers"
             ],
             "sources": [
                 "src/node-uriparser.cc"
             ],
             "include_dirs": [
-                "<(module_root_dir)/build/uriparser/include/uriparser"
+                "<(module_root_dir)/build/uriparser/include/uriparser",
+                "<(module_root_dir)/build/ngx_url_parser/include/ngx_url_parser",
+                "<!(node -e \"require('nan')\")"
+
             ],
             "cflags": [
                 "-g"
             ],
             "libraries": [
+                "<(module_root_dir)/build/ngx_url_parser/lib/libngx_url_parser.a",
                 "<(module_root_dir)/build/uriparser/lib/liburiparser.a"
             ]
         },
         {
-            "target_name": "liburiparser",
+            "target_name": "libparsers",
             "type": "none",
             "actions": [
                 {
                     "action_name": "build",
                     "inputs": [""],
                     "outputs": [""],
-                    "action": ["sh", "build_uriparser.sh"]
+                    "action": ["sh", "build_deps.sh"]
                 }
             ]
         },
@@ -38,14 +42,14 @@
             ],
             "actions": [
                 {
-                    "action_name": "symlink",
+                    "action_name": "copy",
                     "inputs": [
                         "<@(PRODUCT_DIR)/uriparser.node"
                     ],
                     "outputs": [
                         "<(module_root_dir)/bin/uriparser.node"
                     ],
-                    "action": ["ln", "-s", "<@(PRODUCT_DIR)/uriparser.node", "<(module_root_dir)/bin/uriparser.node"]
+                    "action": ["cp", "<@(PRODUCT_DIR)/uriparser.node", "<(module_root_dir)/bin/uriparser.node"]
                 }
             ]
         }

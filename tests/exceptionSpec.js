@@ -35,9 +35,4 @@ describe("uriparser - exceptions", function () {
         }).toThrow();
     });
 
-    it("wrong url given", function () {
-        expect(function () {
-            uriparser.parse("http://www.dreamlab.pl/a[]=1");
-        }).toThrow();
-    });
 });

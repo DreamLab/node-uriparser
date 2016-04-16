@@ -1,5 +1,11 @@
+[![Build Status](https://travis-ci.org/DreamLab/node-uriparser.svg?branch=master)](https://travis-ci.org/DreamLab/node-uriparser) [![npm version](https://badge.fury.io/js/uriparser.svg)](https://badge.fury.io/js/uriparser) [![downloads badge](http://img.shields.io/npm/dm/uriparser.svg)](https://www.npmjs.org/package/uriparser)
+
+
+#node-uriparser
+
 ##About:
-Bindings for Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse
+Bindings for RFC strict Uriparser (http://uriparser.sourceforge.net/), gives > 10x better performance that built-in url.parse.
+From version 2.0.0 you can use non-strict NGINX based parser (https://github.com/DreamLab/ngx_url_parser).
 
 ##How to build/install:
 ```
@@ -19,27 +25,33 @@ Library (uriparser) requires following packages to be installed:
 - pkg-config
 
 ##API:
-There is only one simple function: ````parse(url[, options]);````.
+There is only one simple function: ````parse(url[, options, engine]);````.
 
 Optional argument ````options```` lets you tell the library what your interests are, for example you can tell it to only give you the host.
 
-Available options: ````kProtocol````, ````kAuth````, ````kHost````, ````kPort````, ````kQuery````, ````kFragment````, ````kPath````, ````kAll````
+Available options: ````PROTOCOL````, ````AUTH````, ````HOST````, ````PORT````, ````QUERY````, ````FRAGMENT````, ````PATH````, ````ALL````
+
+Optional argument ````engine```` lets you tell the library what parser do you would like to use. Default is UriParser.
+
+Available engines: ```NGINX```, ```URIPARSER```.
 
 ##Example:
-```
+```js
+
 var uriparser = require('uriparser');
 
 var u = uriparser.parse('http://github.com');
 console.log(u);
 { protocol: 'http:', host: 'github.com', path: '/' }
 
-var q = uriparser.parse('https://github.com', uriparser.kProtocol);
+var q = uriparser.parse('https://github.com', uriparser.Uri.PROTOCOL, uriparser.Engines.NGINX);
 console.log(q);
 { protocol: 'https:' }
 ```
 
 ##Benchmarks:
 Just run ````time node examples/benchmark1.js```` and ````time node examples/benchmark2.js```` and compare the results.
+
 
 ##License:
 ```
