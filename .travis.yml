@@ -24,10 +24,11 @@ addons:
             - libtool
             - pkg-config
 
-before_install:
-    - touch ~/.npmrc
-
 script:
     - npm install -g jasmine-node
     - jasmine-node --verbose tests
+
+matrix:
+    allow_failures:
+        - os: osx # node 0.8 fails on OS X
 
