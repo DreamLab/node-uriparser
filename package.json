@@ -1,6 +1,6 @@
 {
     "name": "uriparser",
-    "version": "2.1.2",
+    "version": "3.0.0",
     "description": "Fastest uriparser, written in C",
     "keywords": ["uriparser", "uri", "parser", "url"],
     "contributors": [
@@ -8,7 +8,7 @@
         "Marcin Kaciuba <marcin.kaciuba@gmail.com>"
     ],
     "dependencies": {
-        "nan": "2.1.0"
+        "nan": "2.4.0"
     },
     "main": "./bin/uriparser.node",
     "repository": {
