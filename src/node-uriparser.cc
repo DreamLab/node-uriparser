@@ -21,10 +21,9 @@
  */
 
 #include <map>
-#include <list>
-#include <string>
 #include <cstring>
 #include <vector>
+#include <map>
 #include <nan.h>
 #include "parsers.hpp"
 
@@ -43,7 +42,6 @@ enum parseOptions {
 };
 
 enum Engines {
-    eUriParser = 1,
     eNgxParser
 };
 
@@ -90,11 +88,7 @@ NAN_METHOD(parse) {
 
     Url uri;
     Parser *parser;
-    if (engine == eUriParser) {
-        parser = new UriParser(*url);
-    } else {
-        parser = new NgxParser(*url);
-    }
+    parser = new NgxParser(*url);
 
     if (parser->status != Parser::OK) {
         Nan::ThrowError("Unable to parse given url");
@@ -103,7 +97,7 @@ NAN_METHOD(parse) {
     uri = parser->url;
 
     if (uri.scheme.start && (opts & kProtocol)) {
-        // +1 becasue we need ":" in scheme/protocol
+        // +1 because we need ":" in scheme/protocol
         data->ForceSet(Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(uri.scheme.start, uri.scheme.len + 1).ToLocalChecked(), attrib);
     }
 
@@ -138,8 +132,9 @@ NAN_METHOD(parse) {
     }
 
     if (uri.query.start && (opts & kQuery)) {
-        std::map<std::string, std::list<const char *> > paramsMap;
+        std::map<std::string, std::vector<const char *> > paramsMap;
         std::vector<std::string> paramsOrder;
+        paramsOrder.reserve(uri.query.len / 2);
         char *query = new char[uri.query.len + 1];
         std::strncpy(query, uri.query.start, uri.query.len);
         query[uri.query.len] = '\0';
@@ -167,8 +162,9 @@ NAN_METHOD(parse) {
         bool arrayBrackets = false;
         while (queryParam) {
             if (*queryParam != *sum) {
-                size_t len;
+                uint16_t len, queryLen;
                 empty = false;
+                queryLen = strlen(queryParam);
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
                 len = strlen(queryParamKey);
                 if (len > (sizeof(ENCODED_BRACKETS) - 1) &&
@@ -191,7 +187,12 @@ NAN_METHOD(parse) {
                 if (paramsMap.find(queryParamKey) == paramsMap.end()) {
                     paramsOrder.push_back(queryParamKey);
                 }
-                paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
+
+                if (queryLen - len > 0) {
+                    paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue: "");
+                } else {
+                    paramsMap[queryParamKey].push_back(NULL);
+                }
             }
             queryParam = strtok_r(NULL, separator, &queryParamPairPtr);
         }
@@ -199,19 +200,24 @@ NAN_METHOD(parse) {
 
         for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
             v8::Local<v8::String> key = URI_LOCAL_STR(it->c_str());
-            std::list<const char *> vals = paramsMap[*it];
-            int arrSize = vals.size();
+            std::vector<const char *> vals = paramsMap[*it];
+            const int arrSize = vals.size();
             if (arrSize > 1 || qsSuffix->Has(key)) {
                 v8::Local<v8::Array> arrVal = Nan::New<v8::Array>(arrSize);
 
                 int i = 0;
-                for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
+                for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
                     arrVal->Set(i, URI_LOCAL_STR(*it2));
                     i++;
                 }
                 queryData->Set(key, arrVal);
             } else {
-                queryData->Set(key, URI_LOCAL_STR(vals.front()));
+                const char * tmp = vals.front();
+                if (tmp) {
+                    queryData->Set(key, URI_LOCAL_STR(vals.front()));
+                } else {
+                    queryData->Set(key, Nan::Null());
+                }
             }
         }
 
@@ -268,7 +274,6 @@ void init (v8::Handle<v8::Object> target){
     target->Set(URI_LOCAL_STR("Uri"), uri);
 
     v8::Handle<v8::Object> engines = Nan::New<v8::Object>();
-    engines->Set(URI_LOCAL_STR("URIPARSER"), Nan::New<v8::Integer>(eUriParser));
     engines->Set(URI_LOCAL_STR("NGINX"), Nan::New<v8::Integer>(eNgxParser));
     target->Set(URI_LOCAL_STR("Engines"), engines);
 
