@@ -49,9 +49,8 @@ console.log(q);
 { protocol: 'https:' }
 ```
 
-##Benchmarks:
-Just run ````time node examples/benchmark1.js```` and ````time node examples/benchmark2.js```` and compare the results.
-
+##Benchmark:
+Just run ``./benchmark.js``
 
 ##License:
 ```
