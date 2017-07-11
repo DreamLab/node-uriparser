@@ -407,4 +407,15 @@ describe('uriparser - parse', function () {
         expect(Object.keys(url).length).toEqual(1);
         expect(url.path).toBe('.!@$%^&*()_-feed');
     });
+
+    it('/adclick?a=1&d2dest=https://ad.doubleclick.net/ddm/trackclk/N100601.127443ONET.PL/B11524173.200789083;dc_trk_aid=400712373;dc_trk_cid=83040526;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=', function () {
+        var url = uriparser.parse('/adclick?a=1&d2dest=https://ad.doubleclick.net/ddm/trackclk/N100601.127443ONET.PL/B11524173.200789083;dc_trk_aid=400712373;dc_trk_cid=83040526;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=');
+
+        expect(Object.keys(url).length).toEqual(3);
+        expect(url.path).toBe('/adclick');
+        expect(url.search).toBe('?a=1&d2dest=https://ad.doubleclick.net/ddm/trackclk/N100601.127443ONET.PL/B11524173.200789083;dc_trk_aid=400712373;dc_trk_cid=83040526;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=');
+        expect(url.query).toEqual({ a : '1',
+            d2dest : 'https://ad.doubleclick.net/ddm/trackclk/N100601.127443ONET.PL/B11524173.200789083;dc_trk_aid=400712373;dc_trk_cid=83040526;dc_lat=;dc_rdid=;tag_for_child_directed_treatment='
+        });
+    });
 });

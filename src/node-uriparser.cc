@@ -57,6 +57,7 @@ static Nan::Persistent<v8::String> querySeparator_symbol(URI_LOCAL_STR("querySep
 static Nan::Persistent<v8::String> fragment_symbol(URI_LOCAL_STR("fragment"));
 static Nan::Persistent<v8::String> path_symbol(URI_LOCAL_STR("path"));
 static Nan::Persistent<v8::String> user_symbol(URI_LOCAL_STR("user"));
+static Nan::Persistent<v8::String> search_symbol(URI_LOCAL_STR("search"));
 static Nan::Persistent<v8::String> password_symbol(URI_LOCAL_STR("password"));
 
 
@@ -135,14 +136,16 @@ NAN_METHOD(parse) {
         std::map<std::string, std::vector<const char *> > paramsMap;
         std::vector<std::string> paramsOrder;
         paramsOrder.reserve(uri.query.len / 2);
-        char *query = new char[uri.query.len + 1];
-        std::strncpy(query, uri.query.start, uri.query.len);
+        char *query = new char[uri.query.len + 2];
+        std::strncpy(query, uri.query.start - 1, uri.query.len);
         query[uri.query.len] = '\0';
 
         const char *amp = "&", *sum = "=", *semicolon = ";", *separator = amp;
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = Nan::New<v8::Object>();
+        data->ForceSet(Nan::New(search_symbol), Nan::New<v8::String>(query).ToLocalChecked(), attrib);
+        query++;
 
         // find qs separator & or ;
         for (size_t i = 0; i < uri.query.len; ++i) {
@@ -165,6 +168,7 @@ NAN_METHOD(parse) {
                 uint16_t len, queryLen;
                 empty = false;
                 queryLen = strlen(queryParam);
+                printf("DEBUG queryParam = %s  \n", queryParam);
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
                 len = strlen(queryParamKey);
                 if (len > (sizeof(ENCODED_BRACKETS) - 1) &&
@@ -183,11 +187,12 @@ NAN_METHOD(parse) {
                     qsSuffix->Set(URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(BRACKETS));
                 }
 
-                queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
+                queryParamValue = strtok_r(NULL, separator, &queryParamPtr);
                 if (paramsMap.find(queryParamKey) == paramsMap.end()) {
                     paramsOrder.push_back(queryParamKey);
                 }
 
+                printf("DEBUG %s = %s separator %s \n", queryParamKey, queryParamValue, separator);
                 if (queryLen - len > 0) {
                     paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue: "");
                 } else {
@@ -229,6 +234,7 @@ NAN_METHOD(parse) {
             }
         }
 
+        query--;
         delete[] query;
     }
 
