@@ -198,7 +198,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://www.dreamlab.pl/test/test1/a[]=1&a[]=2', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a[]=1&a[]=2', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a[]=1&a[]=2');
 
         expect(Object.keys(url).length).toEqual(7);
         expect(url.protocol).toBe('http:');
@@ -211,7 +211,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://www.dreamlab.pl/test/test1/a[name]=1&a[name]=2', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a[name]=1&a[name]=2', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a[name]=1&a[name]=2');
 
         expect(Object.keys(url).length).toEqual(6);
         expect(url.protocol).toBe('http:');
@@ -223,7 +223,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://user:pw@www.dreamlab.pl/test/test1/a[name]=1&a[name]=2#fragment', function () {
-        var url = uriparser.parse('http://user:pw@www.dreamlab.pl/test/test1/?a[name]=1&a[name]=2#fragment', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://user:pw@www.dreamlab.pl/test/test1/?a[name]=1&a[name]=2#fragment');
 
         expect(Object.keys(url).length).toEqual(8);
         expect(url.protocol).toBe('http:');
@@ -237,7 +237,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?b=3&a=1&a=2');
 
         expect(Object.keys(url).length).toEqual(6);
         expect(url.protocol).toBe('http:');
@@ -249,7 +249,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://dreamlab.pl:/', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl:/', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl:/');
 
         expect(Object.keys(url).length).toEqual(4);
         expect(url.protocol).toBe('http:');
@@ -258,13 +258,13 @@ describe('uriparser - parse', function () {
     });
 
     it('http://dreamlab.pl:/ - only protocol', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl:/', uriparser.Uri.PROTOCOL, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl:/', uriparser.Uri.PROTOCOL);
         expect(Object.keys(url).length).toEqual(1);
         expect(url.protocol).toBe('http:');
     });
 
     it('http://dreamlab.pl:', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl:', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl:');
 
         expect(Object.keys(url).length).toEqual(4);
         expect(url.protocol).toBe('http:');
@@ -273,7 +273,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://dreamlab.pl:80/path/index.html?arg1=5', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl:80/path/index.html?arg1=5', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl:80/path/index.html?arg1=5');
 
         expect(Object.keys(url).length).toEqual(7);
         expect(url.protocol).toBe('http:');
@@ -286,7 +286,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http:////', function () {
-        var url = uriparser.parse('http:////', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http:////');
 
         expect(Object.keys(url).length).toEqual(3);
         expect(url.protocol).toBe('http:');
@@ -295,21 +295,21 @@ describe('uriparser - parse', function () {
     });
 
     it('somestring', function () {
-        var url = uriparser.parse('somestring', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('somestring');
 
         expect(Object.keys(url).length).toEqual(1);
         expect(url.path).toBe('somestring');
     });
 
     it('#fragmen/t', function () {
-        var url = uriparser.parse('#fragmen/t', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('#fragmen/t');
 
         expect(Object.keys(url).length).toEqual(2);
         expect(url.fragment).toBe('fragmen/t');
     });
 
     it('?query', function () {
-        var url = uriparser.parse('?query', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('?query');
 
         expect(Object.keys(url).length).toEqual(4);
         expect(url.query).toEqual({'query': null});
@@ -318,7 +318,7 @@ describe('uriparser - parse', function () {
     });
 
     it('https://user_usr:password@www.dreamlab.pl:81/path/index.html?arg1=1&arg2=2', function () {
-        var url = uriparser.parse('https://user_usr:password@www.dreamlab.pl:81/path/index.html?arg1=1&arg2=2', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('https://user_usr:password@www.dreamlab.pl:81/path/index.html?arg1=1&arg2=2');
 
         expect(Object.keys(url).length).toEqual(8);
         expect(url.protocol).toBe('https:');
@@ -332,7 +332,7 @@ describe('uriparser - parse', function () {
     });
 
     it('https://zs.usernanme_cms.test.api.pl/', function () {
-        var url = uriparser.parse('https://zs.usernanme_cms.test.api.pl/', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('https://zs.usernanme_cms.test.api.pl/');
 
         expect(Object.keys(url).length).toEqual(3);
         expect(url.protocol).toBe('https:');
@@ -341,7 +341,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://www.dreamlab.pl/test/test1/?a=3;b=1;a=2', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a=3;b=1;a=2', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a=3;b=1;a=2');
 
         expect(Object.keys(url).length).toEqual(6);
         expect(url.protocol).toBe('http:');
@@ -353,7 +353,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://www.dreamlab.pl/test/test1/?a=3;b;a=2', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a=3;b;a=2', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a=3;b;a=2');
 
         expect(Object.keys(url).length).toEqual(6);
         expect(url.protocol).toBe('http:');
@@ -365,7 +365,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://www.dreamlab.pl/test/test1/?a=', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a=', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a=');
 
         expect(Object.keys(url).length).toEqual(6);
         expect(url.protocol).toBe('http:');
@@ -377,7 +377,7 @@ describe('uriparser - parse', function () {
     });
 
     it('http://www.dreamlab.pl/test/test1/?a', function () {
-        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('http://www.dreamlab.pl/test/test1/?a');
 
         expect(Object.keys(url).length).toEqual(6);
         expect(url.protocol).toBe('http:');
@@ -389,7 +389,7 @@ describe('uriparser - parse', function () {
     });
 
     it('//www.dreamlab.pl/test/test1/?a', function () {
-        var url = uriparser.parse('//www.dreamlab.pl/test/test1/?a', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('//www.dreamlab.pl/test/test1/?a');
 
         expect(Object.keys(url).length).toEqual(5);
         expect(url.host).toBe('www.dreamlab.pl');
@@ -400,7 +400,7 @@ describe('uriparser - parse', function () {
     });
 
     it('/?a', function () {
-        var url = uriparser.parse('/?a', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('/?a');
 
         expect(Object.keys(url).length).toEqual(4);
         expect(url.path).toBe('/');
@@ -410,7 +410,7 @@ describe('uriparser - parse', function () {
     });
 
     it('/?a=', function () {
-        var url = uriparser.parse('/?a=', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('/?a=');
 
         expect(Object.keys(url).length).toEqual(4);
         expect(url.path).toBe('/');
@@ -420,14 +420,14 @@ describe('uriparser - parse', function () {
     });
 
     it('/.!@$%^&*()_-feed', function () {
-        var url = uriparser.parse('/.!@$%^&*()_-feed', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('/.!@$%^&*()_-feed');
 
         expect(Object.keys(url).length).toEqual(1);
         expect(url.path).toBe('/.!@$%^&*()_-feed');
     });
 
     it('.!@$%^&*()_-feed', function () {
-        var url = uriparser.parse('.!@$%^&*()_-feed', null, uriparser.Engines.NGINX);
+        var url = uriparser.parse('.!@$%^&*()_-feed');
 
         expect(Object.keys(url).length).toEqual(1);
         expect(url.path).toBe('.!@$%^&*()_-feed');

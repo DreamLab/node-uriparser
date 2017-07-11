@@ -268,10 +268,6 @@ void init (v8::Handle<v8::Object> target){
     uri->Set(URI_LOCAL_STR("ALL"), Nan::New<v8::Integer>(kAll));
     target->Set(URI_LOCAL_STR("Uri"), uri);
 
-    v8::Handle<v8::Object> engines = Nan::New<v8::Object>();
-    engines->Set(URI_LOCAL_STR("NGINX"), Nan::New<v8::Integer>(eNgxParser));
-    target->Set(URI_LOCAL_STR("Engines"), engines);
-
 }
 
 NODE_MODULE(uriparser, init)
