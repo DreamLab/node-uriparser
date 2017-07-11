@@ -41,10 +41,6 @@ enum parseOptions {
     kAll = kProtocol | kAuth | kHost | kPort | kQuery | kFragment | kPath
 };
 
-enum Engines {
-    eNgxParser
-};
-
 #define URI_LOCAL_STR(name) Nan::New<v8::String>(name).ToLocalChecked()
 
 static Nan::Persistent<v8::String> protocol_symbol(URI_LOCAL_STR("protocol"));
@@ -63,7 +59,6 @@ static Nan::Persistent<v8::String> password_symbol(URI_LOCAL_STR("password"));
 
 NAN_METHOD(parse) {
     parseOptions opts = kAll;
-    Engines engine = eNgxParser;
 
     if (info.Length() == 0 || !info[0]->IsString()) {
         return Nan::ThrowError("First argument has to be string");
@@ -80,15 +75,11 @@ NAN_METHOD(parse) {
         return;
     }
 
-    if (info[2]->IsNumber()) {
-        engine = static_cast<Engines>(info[2]->Int32Value());
-    }
-
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
     v8::Local<v8::Object> data = Nan::New<v8::Object>();
 
     Url uri;
-    Parser *parser;
+    NgxParser *parser;
     parser = new NgxParser(*url);
 
     if (parser->status != Parser::OK) {
@@ -137,8 +128,8 @@ NAN_METHOD(parse) {
         std::vector<std::string> paramsOrder;
         paramsOrder.reserve(uri.query.len / 2);
         char *query = new char[uri.query.len + 2];
-        std::strncpy(query, uri.query.start - 1, uri.query.len);
-        query[uri.query.len] = '\0';
+        std::strncpy(query, uri.query.start - 1, uri.query.len + 1);
+        query[uri.query.len + 1] = '\0';
 
         const char *amp = "&", *sum = "=", *semicolon = ";", *separator = amp;
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
@@ -168,7 +159,6 @@ NAN_METHOD(parse) {
                 uint16_t len, queryLen;
                 empty = false;
                 queryLen = strlen(queryParam);
-                printf("DEBUG queryParam = %s  \n", queryParam);
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
                 len = strlen(queryParamKey);
                 if (len > (sizeof(ENCODED_BRACKETS) - 1) &&
@@ -192,7 +182,6 @@ NAN_METHOD(parse) {
                     paramsOrder.push_back(queryParamKey);
                 }
 
-                printf("DEBUG %s = %s separator %s \n", queryParamKey, queryParamValue, separator);
                 if (queryLen - len > 0) {
                     paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue: "");
                 } else {
