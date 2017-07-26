@@ -24,13 +24,12 @@ def do_clean():
 def build(bld):
     if Options.options.buildUri == True and do_clean() == False:
         bld.exec_command("mkdir -p ngx_url_parser; cd ../deps/ngx_url_parser && ./autogen.sh && ./configure --with-pic  --disable-shared --prefix=%s && make clean install" %(bld.bdir + "/ngx_url_parser"))
-        bld.exec_command("mkdir -p uriparser; cd ../deps/uriparser && ./autogen.sh && ./configure --with-pic --disable-test --disable-doc --disable-shared --prefix=%s && make clean install" % (bld.bdir + "/uriparser"))
 
     obj = bld.new_task_gen("cxx", "shlib", "node_addon")
     obj.target = "uriparser"
     obj.source = "src/node-uriparser.cc"
-    obj.lib = ["uriparser", "ngx_url_parser"]
-    obj.includes = [bld.bdir + "/uriparser/include/uriparser", bld.bdir + "/ngx_url_parser/include/ngx_url_parser", "node_modules/nan/"]
-    obj.libpath = [bld.bdir + "/uriparser/lib", bld.bdir + '/ngx_url_parser/lib']
-    obj.cxxflags = ["-g"]
-    obj.cflags = ["-g"]
+    obj.lib = [ "ngx_url_parser"]
+    obj.includes = [bld.bdir + "/ngx_url_parser/include/ngx_url_parser"]
+    obj.libpath = [bld.bdir + '/ngx_url_parser/lib']
+    obj.cxxflags = ["-O3"]
+    obj.cflags = ["-O3"]

@@ -44,10 +44,6 @@ enum parseOptions {
     kAll = kProtocol | kAuth | kHost | kPort | kQuery | kFragment | kPath
 };
 
-enum Engines {
-    eUriParser = 1,
-    eNgxParser
-};
 
 static v8::Persistent<v8::String> protocol_symbol = NODE_PSYMBOL("protocol");
 static v8::Persistent<v8::String> auth_symbol = NODE_PSYMBOL("auth");
@@ -59,12 +55,12 @@ static v8::Persistent<v8::String> query_separator = NODE_PSYMBOL("querySeparator
 static v8::Persistent<v8::String> fragment_symbol = NODE_PSYMBOL("fragment");
 static v8::Persistent<v8::String> path_symbol = NODE_PSYMBOL("path");
 static v8::Persistent<v8::String> user_symbol = NODE_PSYMBOL("user");
+static v8::Persistent<v8::String> search_symbol = NODE_PSYMBOL("search");
 static v8::Persistent<v8::String> password_symbol = NODE_PSYMBOL("password");
 
 static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     v8::HandleScope scope;
     parseOptions opts = kAll;
-    Engines engine = eNgxParser;
 
     if (args.Length() == 0 || !args[0]->IsString()) {
         return v8::ThrowException(v8::Exception::TypeError(v8::String::New("First argument has to be string")));
@@ -80,26 +76,16 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         return v8::ThrowException(v8::Exception::TypeError(v8::String::New("String mustn't be empty")));
     }
 
-    if (args[2]->IsNumber()) {
-        engine = static_cast<Engines>(args[2]->Int32Value());
-    }
-
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
     v8::Local<v8::Object> data = v8::Object::New();
 
     Url uri;
-    Parser *parser;
+    NgxParser parser(*url);
 
-    if (engine == eUriParser) {
-        parser = new UriParser(*url);
-    } else {
-        parser = new NgxParser(*url);
-    }
-
-    if (parser->status != Parser::OK) {
+    if (parser.status != Parser::OK) {
         return v8::ThrowException(v8::Exception::Error(v8::String::New("Unable to parse given url")));
     }
-    uri = parser->url;
+    uri = parser.url;
 
     if (uri.scheme.start && (opts & kProtocol)) {
         // +1 becasue we need ":" in scheme/protocol
@@ -137,16 +123,19 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
     }
 
     if (uri.query.start && (opts & kQuery)) {
-        std::map<std::string, std::list<const char *> > paramsMap;
-        std::vector<std::string> paramsOrder;
-        char *query = new char[uri.query.len + 1];
-        std::strncpy(query, uri.query.start, uri.query.len);
-        query[uri.query.len] = '\0';
+        std::map<std::string, std::vector<const char *> > paramsMap;
+        std::vector<const char *> paramsOrder;
+        paramsOrder.reserve(uri.query.len / 2);
+        char *query = new char[uri.query.len + 2];
+        std::strncpy(query, uri.query.start - 1, uri.query.len + 1);
+        query[uri.query.len + 1] = '\0';
 
         const char *amp = "&", *sum = "=", *semicolon = ";", *separator = amp;
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = v8::Object::New();
+        data->Set(search_symbol, v8::String::New(query), attrib);
+        query++;
 
         // find qs delimeter & or ;
         for (size_t i = 0; i < uri.query.len; ++i) {
@@ -167,8 +156,9 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         bool arrayBrackets = false;
         while (queryParam) {
             if (*queryParam != *sum) {
-                size_t len;
                 empty = false;
+                uint16_t len, queryLen;
+                queryLen = strlen(queryParam);
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
                 len = strlen(queryParamKey);
                 if (len > (sizeof(ENCODED_BRACKETS) - 1) &&
@@ -187,30 +177,39 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
                     qsSuffix->Set(v8::String::New(queryParamKey), v8::String::New(BRACKETS));
                 }
 
-                queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
+                queryParamValue = strtok_r(NULL, separator, &queryParamPtr);
                 if (paramsMap.find(queryParamKey) == paramsMap.end()) {
                     paramsOrder.push_back(queryParamKey);
                 }
-                paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
+                if (queryLen - len > 0) {
+                    paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue: "");
+                } else {
+                    paramsMap[queryParamKey].push_back(NULL);
+                }
             }
             queryParam = strtok_r(NULL, separator, &queryParamPairPtr);
         }
 
-        for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
-            v8::Local<v8::String> key = v8::String::New(it->c_str());
-            std::list<const char *> vals = paramsMap[*it];
+        for (std::vector<const char *>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
+            v8::Local<v8::String> key = v8::String::New(*it);
+            std::vector<const char *> &vals = paramsMap[*it];
             int arrSize = vals.size();
             if (arrSize > 1 || qsSuffix->Has(key)) {
                 v8::Local<v8::Array> arrVal = v8::Array::New(arrSize);
 
                 int i = 0;
-                for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
+                for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
                     arrVal->Set(i, v8::String::New(*it2));
                     i++;
                 }
                 queryData->Set(key, arrVal);
             } else {
-                queryData->Set(key, v8::String::New(vals.front()));
+                const char * tmp = vals.front();
+                if (tmp) {
+                    queryData->Set(key, v8::String::New(vals.front()));
+                } else {
+                    queryData->Set(key, v8::Null());
+                }
             }
         }
 
@@ -222,6 +221,7 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
             }
         }
 
+        query--;
         delete[] query;
     }
 
@@ -237,7 +237,6 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
         }
     }
 
-    delete parser;
 
     return scope.Close(data);
 }
@@ -267,11 +266,6 @@ extern "C" void init (v8::Handle<v8::Object> target){
     uri->Set(v8::String::New("FRAGMENT"), v8::Integer::New(kFragment));
     uri->Set(v8::String::New("ALL"), v8::Integer::New(kAll));
     target->Set(v8::String::New("Uri"), uri);
-
-    v8::Handle<v8::Object> engines = v8::Object::New();
-    engines->Set(v8::String::New("URIPARSER"), v8::Integer::New(eUriParser));
-    engines->Set(v8::String::New("NGINX"), v8::Integer::New(eNgxParser));
-    target->Set(v8::String::New("Engines"), engines);
 
 }
 
