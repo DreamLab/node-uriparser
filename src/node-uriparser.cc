@@ -199,7 +199,11 @@ static v8::Handle<v8::Value> parse(const v8::Arguments& args){
 
                 int i = 0;
                 for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                    arrVal->Set(i, v8::String::New(*it2));
+                    if (*it2 != NULL) {
+                        arrVal->Set(i, v8::String::New(*it2));
+                    } else {
+                        arrVal->Set(i, v8::Null());
+                    }
                     i++;
                 }
                 queryData->Set(key, arrVal);
