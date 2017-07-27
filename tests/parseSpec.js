@@ -443,4 +443,23 @@ describe('uriparser - parse', function () {
             d2dest : 'https://ad.doubleclick.net/ddm/trackclk/N100601.127443ONET.PL/B11524173.200789083;dc_trk_aid=400712373;dc_trk_cid=83040526;dc_lat=;dc_rdid=;tag_for_child_directed_treatment='
         });
     });
+
+    it('http://dreamlab.pl/?attach_external_tab&180508352&4&0&0&0&0&iexplore', function () {
+
+        var url = uriparser.parse('http://dreamlab.pl/?attach_external_tab&180508352&4&0&0&0&0&iexplore');
+
+        expect(Object.keys(url).length).toEqual(6);
+        expect(url.protocol).toBe('http:');
+        expect(url.host).toBe('dreamlab.pl');
+        expect(url.search).toBe('?attach_external_tab&180508352&4&0&0&0&0&iexplore');
+        expect(url.query).toEqual({
+            '0': [ null, null, null, null ],
+            '4': null,
+            '180508352': null,
+             attach_external_tab: null,
+            iexplore: null
+        });
+        expect(url.path).toBe('/');
+    });
+
 });
