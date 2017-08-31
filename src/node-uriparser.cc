@@ -201,7 +201,11 @@ NAN_METHOD(parse) {
 
                 int i = 0;
                 for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                    arrVal->Set(i, URI_LOCAL_STR(*it2));
+                    if (*it2 != NULL) {
+                        arrVal->Set(i, URI_LOCAL_STR(*it2));
+                    } else {
+                        arrVal->Set(i, Nan::Null());
+                    }
                     i++;
                 }
                 queryData->Set(key, arrVal);
