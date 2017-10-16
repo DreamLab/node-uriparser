@@ -44,15 +44,10 @@ for (var name in urls) {
     }
     console.timeEnd('  url.parse');
 
-    console.time('  uriparser');
-    for (var i = 0; i < repeats; i++) {
-        uriparser.parse(url, null, uriparser.Engines.URIPARSER);
-    }
-    console.timeEnd('  uriparser');
 
     console.time('  uriparser (nginx)');
     for (var i = 0; i < repeats; i++) {
-        uriparser.parse(url, null, uriparser.Engines.NGINX);
+        uriparser.parse(url);
     }
     console.timeEnd('  uriparser (nginx)');
 

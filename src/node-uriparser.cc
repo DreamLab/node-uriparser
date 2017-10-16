@@ -21,10 +21,9 @@
  */
 
 #include <map>
-#include <list>
-#include <string>
 #include <cstring>
 #include <vector>
+#include <map>
 #include <nan.h>
 #include "parsers.hpp"
 
@@ -42,11 +41,6 @@ enum parseOptions {
     kAll = kProtocol | kAuth | kHost | kPort | kQuery | kFragment | kPath
 };
 
-enum Engines {
-    eUriParser = 1,
-    eNgxParser
-};
-
 #define URI_LOCAL_STR(name) Nan::New<v8::String>(name).ToLocalChecked()
 
 static Nan::Persistent<v8::String> protocol_symbol(URI_LOCAL_STR("protocol"));
@@ -59,12 +53,12 @@ static Nan::Persistent<v8::String> querySeparator_symbol(URI_LOCAL_STR("querySep
 static Nan::Persistent<v8::String> fragment_symbol(URI_LOCAL_STR("fragment"));
 static Nan::Persistent<v8::String> path_symbol(URI_LOCAL_STR("path"));
 static Nan::Persistent<v8::String> user_symbol(URI_LOCAL_STR("user"));
+static Nan::Persistent<v8::String> search_symbol(URI_LOCAL_STR("search"));
 static Nan::Persistent<v8::String> password_symbol(URI_LOCAL_STR("password"));
 
 
 NAN_METHOD(parse) {
     parseOptions opts = kAll;
-    Engines engine = eNgxParser;
 
     if (info.Length() == 0 || !info[0]->IsString()) {
         return Nan::ThrowError("First argument has to be string");
@@ -81,20 +75,12 @@ NAN_METHOD(parse) {
         return;
     }
 
-    if (info[2]->IsNumber()) {
-        engine = static_cast<Engines>(info[2]->Int32Value());
-    }
-
     v8::PropertyAttribute attrib = (v8::PropertyAttribute) (v8::ReadOnly | v8::DontDelete);
     v8::Local<v8::Object> data = Nan::New<v8::Object>();
 
     Url uri;
-    Parser *parser;
-    if (engine == eUriParser) {
-        parser = new UriParser(*url);
-    } else {
-        parser = new NgxParser(*url);
-    }
+    NgxParser *parser;
+    parser = new NgxParser(*url);
 
     if (parser->status != Parser::OK) {
         Nan::ThrowError("Unable to parse given url");
@@ -103,7 +89,7 @@ NAN_METHOD(parse) {
     uri = parser->url;
 
     if (uri.scheme.start && (opts & kProtocol)) {
-        // +1 becasue we need ":" in scheme/protocol
+        // +1 because we need ":" in scheme/protocol
         data->ForceSet(Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(uri.scheme.start, uri.scheme.len + 1).ToLocalChecked(), attrib);
     }
 
@@ -138,16 +124,19 @@ NAN_METHOD(parse) {
     }
 
     if (uri.query.start && (opts & kQuery)) {
-        std::map<std::string, std::list<const char *> > paramsMap;
+        std::map<std::string, std::vector<const char *> > paramsMap;
         std::vector<std::string> paramsOrder;
-        char *query = new char[uri.query.len + 1];
-        std::strncpy(query, uri.query.start, uri.query.len);
-        query[uri.query.len] = '\0';
+        paramsOrder.reserve(uri.query.len / 2);
+        char *query = new char[uri.query.len + 2];
+        std::strncpy(query, uri.query.start - 1, uri.query.len + 1);
+        query[uri.query.len + 1] = '\0';
 
         const char *amp = "&", *sum = "=", *semicolon = ";", *separator = amp;
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = Nan::New<v8::Object>();
+        data->ForceSet(Nan::New(search_symbol), Nan::New<v8::String>(query).ToLocalChecked(), attrib);
+        query++;
 
         // find qs separator & or ;
         for (size_t i = 0; i < uri.query.len; ++i) {
@@ -167,8 +156,9 @@ NAN_METHOD(parse) {
         bool arrayBrackets = false;
         while (queryParam) {
             if (*queryParam != *sum) {
-                size_t len;
+                uint16_t len, queryLen;
                 empty = false;
+                queryLen = strlen(queryParam);
                 queryParamKey = strtok_r(queryParam, sum, &queryParamPtr);
                 len = strlen(queryParamKey);
                 if (len > (sizeof(ENCODED_BRACKETS) - 1) &&
@@ -187,11 +177,16 @@ NAN_METHOD(parse) {
                     qsSuffix->Set(URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(BRACKETS));
                 }
 
-                queryParamValue = strtok_r(NULL, sum, &queryParamPtr);
+                queryParamValue = strtok_r(NULL, separator, &queryParamPtr);
                 if (paramsMap.find(queryParamKey) == paramsMap.end()) {
                     paramsOrder.push_back(queryParamKey);
                 }
-                paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue : "");
+
+                if (queryLen - len > 0) {
+                    paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue: "");
+                } else {
+                    paramsMap[queryParamKey].push_back(NULL);
+                }
             }
             queryParam = strtok_r(NULL, separator, &queryParamPairPtr);
         }
@@ -199,19 +194,28 @@ NAN_METHOD(parse) {
 
         for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
             v8::Local<v8::String> key = URI_LOCAL_STR(it->c_str());
-            std::list<const char *> vals = paramsMap[*it];
-            int arrSize = vals.size();
+            std::vector<const char *> vals = paramsMap[*it];
+            const int arrSize = vals.size();
             if (arrSize > 1 || qsSuffix->Has(key)) {
                 v8::Local<v8::Array> arrVal = Nan::New<v8::Array>(arrSize);
 
                 int i = 0;
-                for (std::list<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                    arrVal->Set(i, URI_LOCAL_STR(*it2));
+                for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
+                    if (*it2 != NULL) {
+                        arrVal->Set(i, URI_LOCAL_STR(*it2));
+                    } else {
+                        arrVal->Set(i, Nan::Null());
+                    }
                     i++;
                 }
                 queryData->Set(key, arrVal);
             } else {
-                queryData->Set(key, URI_LOCAL_STR(vals.front()));
+                const char * tmp = vals.front();
+                if (tmp) {
+                    queryData->Set(key, URI_LOCAL_STR(vals.front()));
+                } else {
+                    queryData->Set(key, Nan::Null());
+                }
             }
         }
 
@@ -223,6 +227,7 @@ NAN_METHOD(parse) {
             }
         }
 
+        query--;
         delete[] query;
     }
 
@@ -266,11 +271,6 @@ void init (v8::Handle<v8::Object> target){
     uri->Set(URI_LOCAL_STR("FRAGMENT"), Nan::New<v8::Integer>(kFragment));
     uri->Set(URI_LOCAL_STR("ALL"), Nan::New<v8::Integer>(kAll));
     target->Set(URI_LOCAL_STR("Uri"), uri);
-
-    v8::Handle<v8::Object> engines = Nan::New<v8::Object>();
-    engines->Set(URI_LOCAL_STR("URIPARSER"), Nan::New<v8::Integer>(eUriParser));
-    engines->Set(URI_LOCAL_STR("NGINX"), Nan::New<v8::Integer>(eNgxParser));
-    target->Set(URI_LOCAL_STR("Engines"), engines);
 
 }
 
