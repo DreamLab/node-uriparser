@@ -90,7 +90,7 @@ NAN_METHOD(parse) {
 
     if (uri.scheme.start && (opts & kProtocol)) {
         // +1 because we need ":" in scheme/protocol
-        data->ForceSet(Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(uri.scheme.start, uri.scheme.len + 1).ToLocalChecked(), attrib);
+        Nan::DefineOwnProperty(data, Nan::New<v8::String>(protocol_symbol), Nan::New<v8::String>(uri.scheme.start, uri.scheme.len + 1).ToLocalChecked(), attrib);
     }
 
     if (uri.auth.start && (opts & kAuth)) {
@@ -106,21 +106,21 @@ NAN_METHOD(parse) {
 
         if (authUser != NULL && authPassword != NULL) {
             v8::Local<v8::Object> authData = Nan::New<v8::Object>();
-            authData->ForceSet(Nan::New(user_symbol), URI_LOCAL_STR(authUser), attrib);
-            authData->ForceSet(Nan::New(password_symbol), URI_LOCAL_STR(authPassword), attrib);
+            Nan::DefineOwnProperty(authData, Nan::New(user_symbol), URI_LOCAL_STR(authUser), attrib);
+            Nan::DefineOwnProperty(authData, Nan::New(password_symbol), URI_LOCAL_STR(authPassword), attrib);
 
-            data->ForceSet(Nan::New(auth_symbol), authData, attrib);
+            Nan::DefineOwnProperty(data, Nan::New(auth_symbol), authData, attrib);
         }
 
         delete[] auth;
     }
 
     if (uri.host.start && (opts & kHost)) {
-        data->ForceSet(Nan::New(host_symbol), Nan::New<v8::String>(uri.host.start, uri.host.len).ToLocalChecked(), attrib);
+        Nan::DefineOwnProperty(data, Nan::New(host_symbol), Nan::New<v8::String>(uri.host.start, uri.host.len).ToLocalChecked(), attrib);
     }
 
     if (uri.port.start && (opts & kPort)) {
-        data->ForceSet(Nan::New(port_symbol), Nan::New<v8::String>(uri.port.start, uri.port.len).ToLocalChecked(), attrib);
+        Nan::DefineOwnProperty(data, Nan::New(port_symbol), Nan::New<v8::String>(uri.port.start, uri.port.len).ToLocalChecked(), attrib);
     }
 
     if (uri.query.start && (opts & kQuery)) {
@@ -135,7 +135,7 @@ NAN_METHOD(parse) {
         char *queryParamPairPtr, *queryParam, *queryParamKey, *queryParamValue, *queryParamPtr;
         bool empty = true;
         v8::Local<v8::Object> qsSuffix = Nan::New<v8::Object>();
-        data->ForceSet(Nan::New(search_symbol), Nan::New<v8::String>(query).ToLocalChecked(), attrib);
+        Nan::DefineOwnProperty(data, Nan::New(search_symbol), Nan::New<v8::String>(query).ToLocalChecked(), attrib);
         query++;
 
         // find qs separator & or ;
@@ -149,7 +149,7 @@ NAN_METHOD(parse) {
             }
         }
 
-        data->ForceSet(Nan::New(querySeparator_symbol), Nan::New<v8::String>(separator).ToLocalChecked(), attrib);
+        Nan::DefineOwnProperty(data, Nan::New(querySeparator_symbol), Nan::New<v8::String>(separator).ToLocalChecked(), attrib);
         queryParam = strtok_r(query, separator, &queryParamPairPtr);
 
         v8::Local<v8::Object> queryData = Nan::New<v8::Object>();
@@ -221,9 +221,9 @@ NAN_METHOD(parse) {
 
         //no need for empty object if the query string is going to be wrong
         if (!empty) {
-            data->ForceSet(Nan::New(query_symbol), queryData, attrib);
+            Nan::DefineOwnProperty(data, Nan::New(query_symbol), queryData, attrib);
             if (arrayBrackets) {
-                data->ForceSet(Nan::New(queryArraySuffix_symbol), qsSuffix, attrib);
+                Nan::DefineOwnProperty(data, Nan::New(queryArraySuffix_symbol), qsSuffix, attrib);
             }
         }
 
@@ -232,15 +232,15 @@ NAN_METHOD(parse) {
     }
 
     if (uri.fragment.start && (opts & kFragment)) {
-        data->ForceSet(Nan::New(fragment_symbol), Nan::New<v8::String>(uri.fragment.start, uri.fragment.len).ToLocalChecked(), attrib);
+        Nan::DefineOwnProperty(data, Nan::New(fragment_symbol), Nan::New<v8::String>(uri.fragment.start, uri.fragment.len).ToLocalChecked(), attrib);
     }
 
 
     if (opts & kPath) {
         if (uri.path.start) {
-            data->ForceSet(Nan::New(path_symbol), Nan::New<v8::String>(uri.path.start, uri.path.len).ToLocalChecked(), attrib);
+            Nan::DefineOwnProperty(data, Nan::New(path_symbol), Nan::New<v8::String>(uri.path.start, uri.path.len).ToLocalChecked(), attrib);
         } else {
-            data->ForceSet(Nan::New(path_symbol), URI_LOCAL_STR("/"), attrib);
+            Nan::DefineOwnProperty(data, Nan::New(path_symbol), URI_LOCAL_STR("/"), attrib);
         }
     }
 

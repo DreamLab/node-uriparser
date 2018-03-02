@@ -1,6 +1,6 @@
 {
     "name": "uriparser",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "description": "Fastest uriparser, written in C",
     "keywords": ["uriparser", "uri", "parser", "url"],
     "contributors": [
@@ -8,7 +8,7 @@
         "Marcin Kaciuba <marcin.kaciuba@gmail.com>"
     ],
     "dependencies": {
-        "nan": "~2.7.0"
+        "nan": "~2.9.2"
     },
     "devDependencies": {
       "jasmine-node": "1.14.5"
