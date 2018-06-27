@@ -1,3 +1,6 @@
 [submodule "deps/ngx_url_parser"]
 	path = deps/ngx_url_parser
 	url = https://github.com/DreamLab/ngx_url_parser.git
+[submodule "deps/ordered-map"]
+	path = deps/ordered-map
+	url = https://github.com/Tessil/ordered-map

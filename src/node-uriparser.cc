@@ -23,8 +23,12 @@
 #include <map>
 #include <cstring>
 #include <vector>
-#include <map>
 #include <nan.h>
+
+// We don't want to terminate process
+#define TSL_THROW_OR_TERMINATE(ex) Nan::ThrowError(ex.what());
+
+#include <tsl/ordered_map.h>
 #include "parsers.hpp"
 
 #define ENCODED_BRACKETS "%5B%5D"
@@ -79,14 +83,13 @@ NAN_METHOD(parse) {
     v8::Local<v8::Object> data = Nan::New<v8::Object>();
 
     Url uri;
-    NgxParser *parser;
-    parser = new NgxParser(*url);
+    NgxParser parser{*url};
 
-    if (parser->status != Parser::OK) {
+    if (parser.status != Parser::OK) {
         Nan::ThrowError("Unable to parse given url");
         return;
     }
-    uri = parser->url;
+    uri = parser.url;
 
     if (uri.scheme.start && (opts & kProtocol)) {
         // +1 because we need ":" in scheme/protocol
@@ -124,9 +127,7 @@ NAN_METHOD(parse) {
     }
 
     if (uri.query.start && (opts & kQuery)) {
-        std::map<std::string, std::vector<const char *> > paramsMap;
-        std::vector<std::string> paramsOrder;
-        paramsOrder.reserve(uri.query.len / 2);
+        tsl::ordered_map<std::string, std::vector<const char *> > paramsMap;
         char *query = new char[uri.query.len + 2];
         std::strncpy(query, uri.query.start - 1, uri.query.len + 1);
         query[uri.query.len + 1] = '\0';
@@ -178,9 +179,6 @@ NAN_METHOD(parse) {
                 }
 
                 queryParamValue = strtok_r(NULL, separator, &queryParamPtr);
-                if (paramsMap.find(queryParamKey) == paramsMap.end()) {
-                    paramsOrder.push_back(queryParamKey);
-                }
 
                 if (queryLen - len > 0) {
                     paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue: "");
@@ -192,17 +190,17 @@ NAN_METHOD(parse) {
         }
 
 
-        for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
-            v8::Local<v8::String> key = URI_LOCAL_STR(it->c_str());
-            std::vector<const char *> vals = paramsMap[*it];
+           for (const auto &keyValue : paramsMap) {
+            v8::Local<v8::String> key = URI_LOCAL_STR(keyValue.first);
+            auto vals = std::move(keyValue.second);
             const int arrSize = vals.size();
-            if (arrSize > 1 || qsSuffix->Has(key)) {
+            if (arrSize > 1 || (arrayBrackets && qsSuffix->Has(key))) {
                 v8::Local<v8::Array> arrVal = Nan::New<v8::Array>(arrSize);
 
                 int i = 0;
-                for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
-                    if (*it2 != NULL) {
-                        arrVal->Set(i, URI_LOCAL_STR(*it2));
+                for (const auto &val : vals) {
+                    if (val != NULL) {
+                        arrVal->Set(i, URI_LOCAL_STR(val));
                     } else {
                         arrVal->Set(i, Nan::Null());
                     }
@@ -243,8 +241,6 @@ NAN_METHOD(parse) {
             Nan::DefineOwnProperty(data, Nan::New(path_symbol), URI_LOCAL_STR("/"), attrib);
         }
     }
-
-    delete parser;
 
     info.GetReturnValue().Set(data);
 }

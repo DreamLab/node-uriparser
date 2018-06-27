@@ -1,20 +1,25 @@
 {
     "name": "uriparser",
-    "version": "2.2.1",
+    "version": "2.3.0",
     "description": "Fastest uriparser, written in C",
-    "keywords": ["uriparser", "uri", "parser", "url"],
+    "keywords": [
+        "uriparser",
+        "uri",
+        "parser",
+        "url"
+    ],
     "contributors": [
         "Jakub Lekstan <kuebzky@gmail.com>",
         "Marcin Kaciuba <marcin.kaciuba@gmail.com>"
     ],
     "dependencies": {
-        "nan": "~2.9.2"
+        "nan": "^2.9.2"
     },
     "devDependencies": {
-      "jasmine-node": "1.14.5"
+        "jasmine-node": "1.14.5"
     },
     "scripts": {
-      "test": "jasmine-node tests/*"
+        "test": "jasmine-node tests/*"
     },
     "main": "./bin/uriparser.node",
     "repository": {
@@ -22,6 +27,6 @@
         "url": "https://github.com/DreamLab/uriparser.git"
     },
     "engines": {
-        "node": ">= 0.8.0"
+        "node": ">= 8.0.0"
     }
 }
