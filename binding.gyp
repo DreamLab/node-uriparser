@@ -10,6 +10,7 @@
             ],
             "include_dirs": [
                 "<(module_root_dir)/build/ngx_url_parser/include/ngx_url_parser",
+                "<(module_root_dir)/deps/ordered-map/",
                 "<!(node -e \"require('nan')\")"
 
             ],
