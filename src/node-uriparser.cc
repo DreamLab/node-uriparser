@@ -25,10 +25,23 @@
 #include <vector>
 #include <nan.h>
 
+#if  defined(__cpp_range_based_for) && __cpp_range_based_for >= 200907
+#define HAS_CPP11 1
+#else
+#define HAS_CPP11 0
+#endif
+
+#if HAS_CPP11
 // We don't want to terminate process
 #define TSL_THROW_OR_TERMINATE(ex) Nan::ThrowError(ex.what());
 
 #include <tsl/ordered_map.h>
+#else
+
+#include <map>
+
+#endif
+
 #include "parsers.hpp"
 
 #define ENCODED_BRACKETS "%5B%5D"
@@ -127,7 +140,14 @@ NAN_METHOD(parse) {
     }
 
     if (uri.query.start && (opts & kQuery)) {
+
+#if  HAS_CPP11
         tsl::ordered_map<std::string, std::vector<const char *> > paramsMap;
+#else
+        std::map<std::string, std::vector<const char *> > paramsMap;
+        std::vector<std::string> paramsOrder;
+        paramsOrder.reserve(uri.query.len / 2);
+#endif
         char *query = new char[uri.query.len + 2];
         std::strncpy(query, uri.query.start - 1, uri.query.len + 1);
         query[uri.query.len + 1] = '\0';
@@ -179,7 +199,11 @@ NAN_METHOD(parse) {
                 }
 
                 queryParamValue = strtok_r(NULL, separator, &queryParamPtr);
-
+#if HAS_CPP11 == 0
+                if (paramsMap.find(queryParamKey) == paramsMap.end()) {
+                    paramsOrder.push_back(queryParamKey);
+                }
+#endif
                 if (queryLen - len > 0) {
                     paramsMap[queryParamKey].push_back(queryParamValue ? queryParamValue: "");
                 } else {
@@ -189,21 +213,36 @@ NAN_METHOD(parse) {
             queryParam = strtok_r(NULL, separator, &queryParamPairPtr);
         }
 
-
-           for (const auto &keyValue : paramsMap) {
+#if HAS_CPP11
+        for (const auto &keyValue : paramsMap) {
             v8::Local<v8::String> key = URI_LOCAL_STR(keyValue.first);
             auto vals = std::move(keyValue.second);
+#else
+        for (std::vector<std::string>::iterator it=paramsOrder.begin(); it!=paramsOrder.end(); ++it) {
+            v8::Local<v8::String> key = URI_LOCAL_STR(it->c_str());
+            std::vector<const char *> vals = paramsMap[*it];
+#endif
+
             const int arrSize = vals.size();
             if (arrSize > 1 || (arrayBrackets && qsSuffix->Has(key))) {
                 v8::Local<v8::Array> arrVal = Nan::New<v8::Array>(arrSize);
 
                 int i = 0;
+#if HAS_CPP11
                 for (const auto &val : vals) {
                     if (val != NULL) {
                         arrVal->Set(i, URI_LOCAL_STR(val));
                     } else {
                         arrVal->Set(i, Nan::Null());
                     }
+#else
+                for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
+                    if (*it2 != NULL) {
+                        arrVal->Set(i, URI_LOCAL_STR(*it2));
+                    } else {
+                        arrVal->Set(i, Nan::Null());
+                    }
+#endif
                     i++;
                 }
                 queryData->Set(key, arrVal);
