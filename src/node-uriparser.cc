@@ -96,7 +96,7 @@ NAN_METHOD(parse) {
     v8::Local<v8::Object> data = Nan::New<v8::Object>();
 
     Url uri;
-    NgxParser parser{*url};
+    NgxParser parser(*url);
 
     if (parser.status != Parser::OK) {
         Nan::ThrowError("Unable to parse given url");
