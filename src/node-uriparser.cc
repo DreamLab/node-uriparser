@@ -65,10 +65,10 @@ NAN_METHOD(parse) {
     }
 
     if (info[1]->IsNumber()) {
-        opts = static_cast<parseOptions>(info[1]->Int32Value());
+        opts = static_cast<parseOptions>(info[1]->Int32Value(Nan::GetCurrentContext()).ToChecked());
     }
 
-    Nan::Utf8String  url(info[0]->ToString());
+    Nan::Utf8String url(info[0]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
 
     if (url.length() == 0) {
         Nan::ThrowTypeError("String mustn't be empty");
@@ -167,14 +167,14 @@ NAN_METHOD(parse) {
                                  sizeof(ENCODED_BRACKETS) - 1)) {
                     arrayBrackets = true;
                     queryParamKey[len - (sizeof(ENCODED_BRACKETS) - 1)] = '\0';
-                    qsSuffix->Set(URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(ENCODED_BRACKETS));
+                    Nan::Set(qsSuffix, URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(ENCODED_BRACKETS));
                 } else if (len > (sizeof(BRACKETS) - 1) &&
                         !strncmp(queryParamKey + len - (sizeof(BRACKETS) - 1),
                                  BRACKETS,
                                  sizeof(BRACKETS) - 1)) {
                     arrayBrackets = true;
                     queryParamKey[len - (sizeof(BRACKETS) - 1)] = '\0';
-                    qsSuffix->Set(URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(BRACKETS));
+                    Nan::Set(qsSuffix, URI_LOCAL_STR(queryParamKey), URI_LOCAL_STR(BRACKETS));
                 }
 
                 queryParamValue = strtok_r(NULL, separator, &queryParamPtr);
@@ -196,25 +196,25 @@ NAN_METHOD(parse) {
             v8::Local<v8::String> key = URI_LOCAL_STR(it->c_str());
             std::vector<const char *> vals = paramsMap[*it];
             const int arrSize = vals.size();
-            if (arrSize > 1 || qsSuffix->Has(key)) {
+            if (arrSize > 1 || Nan::Get(qsSuffix, key).IsEmpty()) {
                 v8::Local<v8::Array> arrVal = Nan::New<v8::Array>(arrSize);
 
                 int i = 0;
                 for (std::vector<const char *>::iterator it2 = vals.begin(); it2 != vals.end(); ++it2) {
                     if (*it2 != NULL) {
-                        arrVal->Set(i, URI_LOCAL_STR(*it2));
+                        Nan::Set(arrVal, i, URI_LOCAL_STR(*it2));
                     } else {
-                        arrVal->Set(i, Nan::Null());
+                        Nan::Set(arrVal, i, Nan::Null());
                     }
                     i++;
                 }
-                queryData->Set(key, arrVal);
+                Nan::Set(queryData, key, arrVal);
             } else {
                 const char * tmp = vals.front();
                 if (tmp) {
-                    queryData->Set(key, URI_LOCAL_STR(vals.front()));
+                    Nan::Set(queryData, key, URI_LOCAL_STR(vals.front()));
                 } else {
-                    queryData->Set(key, Nan::Null());
+                    Nan::Set(queryData, key, Nan::Null());
                 }
             }
         }
@@ -249,7 +249,7 @@ NAN_METHOD(parse) {
     info.GetReturnValue().Set(data);
 }
 
-void init (v8::Handle<v8::Object> target){
+void init (v8::Local<v8::Object> target){
 
     // Old properties
     Nan::SetMethod(target, "parse", parse);
@@ -262,15 +262,15 @@ void init (v8::Handle<v8::Object> target){
     NODE_DEFINE_CONSTANT(target, kPath);
     NODE_DEFINE_CONSTANT(target, kAll);
 
-    v8::Handle<v8::Object> uri = Nan::New<v8::Object>();
-    uri->Set(URI_LOCAL_STR("PROTOCOL"), Nan::New<v8::Integer>(kProtocol));
-    uri->Set(URI_LOCAL_STR("AUTH"), Nan::New<v8::Integer>(kAuth));
-    uri->Set(URI_LOCAL_STR("HOST"), Nan::New<v8::Integer>(kHost));
-    uri->Set(URI_LOCAL_STR("PORT"), Nan::New<v8::Integer>(kPort));
-    uri->Set(URI_LOCAL_STR("QUERY"), Nan::New<v8::Integer>(kQuery));
-    uri->Set(URI_LOCAL_STR("FRAGMENT"), Nan::New<v8::Integer>(kFragment));
-    uri->Set(URI_LOCAL_STR("ALL"), Nan::New<v8::Integer>(kAll));
-    target->Set(URI_LOCAL_STR("Uri"), uri);
+    v8::Local<v8::Object> uri = Nan::New<v8::Object>();
+    Nan::Set(uri, URI_LOCAL_STR("PROTOCOL"), Nan::New<v8::Integer>(kProtocol));
+    Nan::Set(uri, URI_LOCAL_STR("AUTH"), Nan::New<v8::Integer>(kAuth));
+    Nan::Set(uri, URI_LOCAL_STR("HOST"), Nan::New<v8::Integer>(kHost));
+    Nan::Set(uri, URI_LOCAL_STR("PORT"), Nan::New<v8::Integer>(kPort));
+    Nan::Set(uri, URI_LOCAL_STR("QUERY"), Nan::New<v8::Integer>(kQuery));
+    Nan::Set(uri, URI_LOCAL_STR("FRAGMENT"), Nan::New<v8::Integer>(kFragment));
+    Nan::Set(uri, URI_LOCAL_STR("ALL"), Nan::New<v8::Integer>(kAll));
+    Nan::Set(target, URI_LOCAL_STR("Uri"), uri);
 
 }
 
