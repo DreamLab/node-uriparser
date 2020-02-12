@@ -1,6 +1,6 @@
 {
     "name": "uriparser",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "description": "Fastest uriparser, written in C",
     "keywords": [
         "uriparser",
@@ -24,7 +24,7 @@
     "main": "./bin/uriparser.node",
     "repository": {
         "type": "git",
-        "url": "https://github.com/DreamLab/uriparser.git"
+        "url": "https://github.com/DreamLab/node-uriparser.git"
     },
     "engines": {
         "node": ">= 0.8.0"
