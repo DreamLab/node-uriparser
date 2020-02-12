@@ -5,7 +5,8 @@ os:
 
 node_js:
     - "8"
-    - "9"
+    - "10"
+    - "12"
 addons:
     apt:
         sources:
