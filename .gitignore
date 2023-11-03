@@ -2,3 +2,4 @@
 build/
 bin/uriparser.node
 *.sw?
+node_modules/

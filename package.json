@@ -1,6 +1,6 @@
 {
     "name": "uriparser",
-    "version": "2.3.1",
+    "version": "3.0.0",
     "description": "Fastest uriparser, written in C",
     "keywords": [
         "uriparser",
