@@ -13,7 +13,7 @@
         "Marcin Kaciuba <marcin.kaciuba@gmail.com>"
     ],
     "dependencies": {
-        "nan": "~2.14.0"
+        "nan": "~2.18.0"
     },
     "devDependencies": {
         "jasmine-node": "1.14.5"
