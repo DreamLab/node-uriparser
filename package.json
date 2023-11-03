@@ -19,7 +19,8 @@
         "jasmine-node": "1.14.5"
     },
     "scripts": {
-        "test": "jasmine-node tests/*"
+        "test": "jasmine-node tests/*",
+        "preinstall": "git submodule update --init --recursive"
     },
     "main": "./bin/uriparser.node",
     "repository": {
