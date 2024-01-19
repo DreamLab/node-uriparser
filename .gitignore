@@ -1,4 +1,8 @@
+.idea/
+
+package-lock.json
 .lock-wscript
 build/
+node_modules/
 bin/uriparser.node
 *.sw?
