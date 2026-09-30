@@ -26,6 +26,15 @@ BUILDDIR="$PHYS_DIR/$TARGET_FILE/build"
 
 NGXDIR="$BUILDDIR/ngx_url_parser"
 
+if [ ! -f deps/ngx_url_parser/autogen.sh ]; then
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+        git submodule update --init --recursive deps/ngx_url_parser || exit 1
+    else
+        echo "deps/ngx_url_parser is missing. Run: git submodule update --init --recursive" >&2
+        exit 1
+    fi
+fi
+
 if [ ! -f $NGXDIR/lib/libngx_url_parser.a ]; then
     mkdir -p $NGXDIR  && cd deps/ngx_url_parser && ./autogen.sh && ./configure --with-pic  --disable-shared --prefix=$NGXDIR && make clean install
 fi
